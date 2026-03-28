@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,14 +10,19 @@ import (
 	"time"
 )
 
-type apiHandler struct{}
-
-func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
-
 func main() {
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir("./root")))
+	filepathRoot := "./root"
+
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "OK")
+	})
+
+	mux.Handle("/app/", http.StripPrefix("/app",
+		http.FileServer(http.Dir(filepathRoot))))
 
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
