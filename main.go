@@ -14,8 +14,11 @@ type apiHandler struct{}
 func (apiHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
 
 func main() {
+
 	mux := http.NewServeMux()
-	srv := http.Server{
+	mux.Handle("/", http.FileServer(http.Dir("./root")))
+
+	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
 		Handler:           mux,
 		ReadHeaderTimeout: time.Millisecond * 30000,
