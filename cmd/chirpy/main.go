@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 	mux := http.NewServeMux()
 	filepathRoot := "./root"
 
