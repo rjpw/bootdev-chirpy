@@ -10,7 +10,7 @@ This is early days. I won't be pushing commits for every lesson, just when I hav
 
 I use Air while working on features. This provides hot reload of the back end, and saves you from having to stop and start the server all the time.
 
-I'm also using `make` to orchestrate static analysis and testing, with `golangci-lint` to keep me honest.
+I'm also using `make` to orchestrate static analysis and testing, with [golangci-lint](https://golangci-lint.run/) to keep me honest.
 
 
 ```bash
