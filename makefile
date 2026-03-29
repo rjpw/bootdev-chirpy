@@ -6,6 +6,9 @@ run:
 build:
 	go build -o tmp/main ./cmd/chirpy
 
+format:
+	golangci-lint fmt ./...
+
 lint:
 	golangci-lint run ./...
 
