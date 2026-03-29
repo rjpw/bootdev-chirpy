@@ -1,6 +1,6 @@
 > Please explain why you recommend interfaces for storage.
 
-> A few reasons, each one practical:
+A few reasons, each one practical:
 
 Testability is the biggest one. When your handlers depend on an interface rather than a concrete type, you can pass a fake implementation in tests — one that returns canned data or simulates errors — without touching a database. Tests run fast, run anywhere, and don't need a Postgres instance standing by.
 
@@ -14,7 +14,7 @@ The cost is low — you're writing method signatures you'd write anyway — and 
 
 > explain how the store interface survives the use of sqlc and goose
 
-> Good question, because sqlc in particular generates its own interface-like layer, and it can look like a collision.
+Good question, because sqlc in particular generates its own interface-like layer, and it can look like a collision.
 
 __What sqlc generates__
 
