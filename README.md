@@ -10,15 +10,21 @@ This is early days. I won't be pushing commits for every lesson, just when I hav
 
 I use Air while working on features. This provides hot reload of the back end, and saves you from having to stop and start the server all the time.
 
-To do the same, accepting Air's default features, use.
+I'm also using `make` to orchestrate static analysis and testing, with `golangci-lint` to keep me honest.
+
 
 ```bash
-# in a foreground terminal
-air init
-air
+# install golangci-lint (optional but a good idea)
+curl -sSfL https://golangci-lint.run/install.sh | \
+  sh -s -- -b $(go env GOPATH)/bin v2.11.4
+
+# configure air (with any changes you see fit to make)
+cp .air-example.toml .air.toml
+
+# run in development mode
+make run
 
 # in another terminal
 curl localhost:8080
 ```
-
 
