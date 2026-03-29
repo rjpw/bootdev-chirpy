@@ -16,6 +16,11 @@ linters:
 formatters:
   enable:
     - gofmt
+    - gci
+    - gofumpt
+    - goimports
+    - golines
+    - swaggo
   exclusions:
     generated: lax
     paths:
