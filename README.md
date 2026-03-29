@@ -1,4 +1,4 @@
-# Boot.dev Course Implementation: Learn HTTP Servers in Go
+# Student Boot.dev Repo: Learn HTTP Servers in Go
 
 This repository contains my implementation of the example server defined in the [Boot.dev](https://www.boot.dev) course [Learn HTTP Servers in Go](https://www.boot.dev/courses/learn-http-servers-golang).
 
