@@ -13,7 +13,7 @@ func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
   </body>
 </html>`
 
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, tmpl, s.cfg.Metrics.FileserverHits())
 }
