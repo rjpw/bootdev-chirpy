@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -10,19 +11,25 @@ func TestMethodResponseCodes(t *testing.T) {
 		method string
 		path   string
 		code   int
+		body   string
 	}{
-		{"GET", "/app/cant-touch-this.txt", 404},
-		{"GET", "/admin/metrics", 200},
-		{"POST", "/admin/metrics", 405},
-		{"DELETE", "/admin/metrics", 405},
-		{"GET", "/api/healthz", 200},
-		{"POST", "/api/healthz", 405},
-		{"GET", "/admin/reset", 405},
-		{"POST", "/admin/reset", 200},
+		{"GET", "/app/cant-touch-this.txt", 404, ""},
+		{"GET", "/admin/metrics", 200, ""},
+		{"POST", "/admin/metrics", 405, ""},
+		{"DELETE", "/admin/metrics", 405, ""},
+		{"GET", "/api/healthz", 200, ""},
+		{"POST", "/api/healthz", 405, ""},
+		{"GET", "/admin/reset", 405, ""},
+		{"POST", "/admin/reset", 200, ""},
+		{"GET", "/api/validate_chirp", 405, ""},
+		{"PUT", "/api/validate_chirp", 405, ""},
+		{"POST", "/api/validate_chirp", 200, "{\"body\":\"hello world\"}"},
+		{"POST", "/api/validate_chirp", 400, "{body: \"hello world\"}"},
+		{"POST", "/api/validate_chirp", 400, "{}"},
 	}
 	for _, tc := range cases {
 		srv := newTestServer()
-		r := httptest.NewRequest(tc.method, tc.path, nil)
+		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(string(tc.body)))
 		w := httptest.NewRecorder()
 		srv.ServeHTTP(w, r)
 		if w.Code != tc.code {

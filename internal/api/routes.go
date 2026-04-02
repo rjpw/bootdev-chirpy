@@ -6,6 +6,7 @@ func (s *Server) registerRoutes() {
 	s.mux.HandleFunc("GET /api/healthz", s.handleHealthz)
 	s.mux.HandleFunc("GET /admin/metrics", s.handleMetrics)
 	s.mux.HandleFunc("POST /admin/reset", s.handleReset)
+	s.mux.HandleFunc("POST /api/validate_chirp", s.handleValidateChirp)
 
 	s.mux.Handle(
 		"/app/",
