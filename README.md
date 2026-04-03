@@ -24,7 +24,7 @@ cp .air-example.toml .air.toml
 # run in development mode
 make run
 
-# in another terminal
-curl localhost:8080
+# in another terminal, check health endpoint
+curl localhost:8080/api/healthz
 ```
 
