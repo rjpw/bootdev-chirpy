@@ -43,10 +43,12 @@ func TestContentType(t *testing.T) {
 		method      string
 		path        string
 		contentType string
+		body        string
 	}{
-		{"GET", "/api/healthz", "text/plain; charset=utf-8"},
-		{"GET", "/admin/metrics", "text/html; charset=utf-8"},
-		{"POST", "/admin/reset", "text/plain; charset=utf-8"},
+		{"GET", "/api/healthz", "text/plain; charset=utf-8", ""},
+		{"GET", "/admin/metrics", "text/html; charset=utf-8", ""},
+		{"POST", "/admin/reset", "text/plain; charset=utf-8", ""},
+		{"POST", "/api/validate_chirp", "application/json; charset=utf-8", "{body: \"hello world\"}"},
 	}
 	for _, tc := range cases {
 		srv := newTestServer()

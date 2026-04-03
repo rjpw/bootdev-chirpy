@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // struct to receive a JSON api `chirp`
@@ -16,7 +17,8 @@ type jsonError struct {
 }
 
 type jsonSuccess struct {
-	Valid bool `json:"valid"`
+	CleanedBody string `json:"cleaned_body,omitempty"`
+	Valid       bool   `json:"valid"`
 }
 
 func (p *parameters) Validate() bool {
@@ -56,5 +58,25 @@ func (s *Server) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.respondWithJSON(w, http.StatusOK, jsonSuccess{Valid: true})
+	s.respondWithJSON(w, http.StatusOK, jsonSuccess{CleanedBody: filterChirp(decoded.Body), Valid: true})
+}
+
+func filterChirp(body string) string {
+	badwords := []string{"sharbert", "kerfuffle", "fornax"}
+
+	lowerBody := strings.ToLower(body)
+	upperWords := strings.Split(body, " ")
+	words := strings.Split(lowerBody, " ")
+
+	for _, badword := range badwords {
+		for i, word := range words {
+			if word == badword {
+				upperWords[i] = "****"
+			}
+		}
+
+	}
+
+	return strings.Join(upperWords, " ")
+
 }
