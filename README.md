@@ -28,3 +28,62 @@ make run
 curl localhost:8080/api/healthz
 ```
 
+### Database
+
+Run a PostgreSQL server in docker:
+
+```bash
+# heredoc to create the docker compose file
+cat << 'eof' > docker-compose.yaml
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+eof
+
+# launch the postgres server
+docker compose up -d
+```
+
+Create your `chirpy` database:
+
+```bash
+# provide password by environment variable
+export PGPASSWORD=postgres
+
+# access the Postgres shell in your container
+psql "postgres://postgres:@localhost:5432"
+
+# at prompt `postgres=#`
+CREATE DATABASE chirpy;
+
+# connect to gator
+\c chirpy
+
+# at prompt `chirpy=#`
+ALTER USER postgres PASSWORD 'postgres';
+
+# back in bash, install dependencies
+go install github.com/pressly/goose/v3/cmd/goose@latest
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+go get github.com/google/uuid
+go get github.com/lib/pq
+go get github.com/joho/godotenv
+go mod tidy
+
+# bring up the database schema
+make sql-migrate
+
+# optionally (re)generate the go database code
+make sql-generate
+```
+

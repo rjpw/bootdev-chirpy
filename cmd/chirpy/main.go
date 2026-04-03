@@ -2,19 +2,33 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"github.com/rjpw/bootdev-chirpy/internal/api"
 	"github.com/rjpw/bootdev-chirpy/internal/config"
+	"github.com/rjpw/bootdev-chirpy/internal/database"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
 )
 
 func main() {
-	cfg := &config.Config{Metrics: &metrics.ServerMetrics{}}
+	godotenv.Load()
+	dbURL := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", dbURL)
+
+	if err != nil {
+		log.Fatalf("Failed to open database: %v", err)
+	}
+	defer db.Close()
+	dbQueries := database.New(db)
+
+	cfg := &config.Config{Metrics: &metrics.ServerMetrics{}, Db: dbQueries}
 
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
