@@ -1,4 +1,4 @@
-# 06 — Developer Workflow
+# 07 — Developer Workflow
 
 In this step you'll set up the day-to-day workflow for running tests: build tags to separate fast tests from slow container tests, makefile targets for convenience, and documentation so future-you (or a teammate) knows how it all works.
 

@@ -1,4 +1,4 @@
-# 03b — Memory Store: Proving the Interface
+# 02 — Memory Store: Proving the Interface
 
 In this step you'll build a complete `UserStore` implementation backed by a map. Then you'll wire it into the server, test it, and — in the next doc — replace it with Postgres without changing a single handler or test.
 
@@ -17,6 +17,7 @@ If you only ever have one implementation of an interface, the interface feels li
 1. **Proof the interface is sufficient.** If the memory store can't implement `CreateUser` cleanly, the interface signature is wrong — and it's cheaper to fix now than after you've wired up sqlc and testcontainers.
 2. **A test suite you can reuse.** The tests you write here test the `UserStore` contract, not the memory implementation. When you build `PostgresStore` in doc 06, you'll run the same assertions and they should pass without changes.
 3. **The swap moment.** In doc 06, you'll change one line in `main.go` and watch everything keep working. That experience is worth more than any design doc.
+4. **Flexibility for evolution** When this project takes off and you decide you need a clustered in-memory cache for some part of your storage implementation, you'll appreciate this decision even more.
 
 
 ## Step 1: Implement the memory store

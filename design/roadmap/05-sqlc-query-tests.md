@@ -1,4 +1,4 @@
-# 02 — sqlc Query-Level Integration Tests
+# 05 — sqlc Query-Level Integration Tests
 
 In this step you'll write tests that exercise your sqlc-generated `Queries` methods against a real Postgres database. These are the base of your test pyramid — they verify that the SQL you wrote actually works.
 

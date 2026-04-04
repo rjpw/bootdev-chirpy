@@ -1,4 +1,4 @@
-# 07 — Embedded Migrate Subcommand
+# 08 — Embedded Migrate Subcommand
 
 In this step you'll add a `migrate` subcommand to the chirpy binary so that the compiled application can run its own database migrations without the goose CLI or raw SQL files on disk.
 

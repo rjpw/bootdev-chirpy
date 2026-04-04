@@ -1,4 +1,4 @@
-# 03 — Store Interface and Domain Types
+# 01 — Store Interface and Domain Types
 
 In this step you'll define the `store.UserStore` interface and the domain types that your application will use. This is the boundary between your application logic and the database — everything above this line speaks in domain terms, everything below it speaks in SQL.
 
@@ -11,7 +11,7 @@ No implementation yet. Just the contract.
 
 ## Why not just use sqlc's types directly?
 
-You explored this in `design/design-faq.md`, but it's worth restating in the context of testing:
+You explored this in `design/02-design-faq.md`, but it's worth restating in the context of testing:
 
 sqlc generates types shaped by your SQL, not by your application's needs. The generated `CreateUserParams` struct has fields for `ID`, `CreatedAt`, and `UpdatedAt` — but should a handler really be responsible for generating UUIDs and timestamps? That's a persistence concern.
 

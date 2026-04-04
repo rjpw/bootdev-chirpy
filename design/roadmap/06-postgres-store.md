@@ -1,4 +1,4 @@
-# 04 — PostgresStore Implementation and Snapshot/Restore Tests
+# 06 — PostgresStore Implementation and Snapshot/Restore Tests
 
 In doc 02 you built a memory store that satisfies `UserStore`. Now you'll replace it with a real Postgres-backed implementation. The interface doesn't change. The tests you wrote against the contract should pass against this new backend without modification. That's the payoff.
 

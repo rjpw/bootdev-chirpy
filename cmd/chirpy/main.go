@@ -15,6 +15,7 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/config"
 	"github.com/rjpw/bootdev-chirpy/internal/database"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
+	"github.com/rjpw/bootdev-chirpy/internal/store/memory"
 )
 
 func main() {
@@ -28,7 +29,11 @@ func main() {
 	defer db.Close()
 	dbQueries := database.New(db)
 
-	cfg := &config.Config{Metrics: &metrics.ServerMetrics{}, Db: dbQueries}
+	cfg := &config.Config{
+		Metrics: &metrics.ServerMetrics{},
+		Db:      dbQueries,
+		Users:   memory.NewMemoryStore(),
+	}
 
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",

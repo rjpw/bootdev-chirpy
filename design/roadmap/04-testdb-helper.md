@@ -1,4 +1,4 @@
-# 01 — Shared Test Database Helper
+# 04 — Shared Test Database Helper
 
 In this step you'll build `internal/testdb/`, a package that any test in the project can import to get a connection to a real, migrated Postgres database running in a Docker container.
 

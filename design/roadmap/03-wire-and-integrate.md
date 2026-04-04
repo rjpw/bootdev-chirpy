@@ -1,4 +1,4 @@
-# 05 — Wire the Store into the API Server
+# 03 — Wire the Store into the API Server
 
 In this step you'll replace the direct `*database.Queries` dependency in your API server with the `store.UserStore` interface. This connects the architecture you've been building to the application code you already have.
 
