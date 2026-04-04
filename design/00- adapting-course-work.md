@@ -1,6 +1,6 @@
 # Adapting Existing Course Work to the Roadmap
 
-You've already completed the goose migration and sqlc steps from the Boot.dev course. This doc explains how to layer the roadmap's interface-driven architecture onto your existing code without breaking what works.
+This was written after I had already completed Boot.dev lesson [CH5-L3: SQLC](https://www.boot.dev/lessons/e5bddf3d-d96b-487e-97e6-7a5aa06b1ee1), which had already added the goose migration and sqlc steps. This doc explains how to layer the roadmap's interface-driven architecture onto your existing code without breaking what works.
 
 
 ## Current state
