@@ -117,7 +117,7 @@ internal/store/
 └── errors.go   ← ErrNotFound, ErrConflict
 ```
 
-That's it. No implementation. The `memory/` directory that already exists is empty, and you haven't created `postgres/` yet. That's doc 04.
+That's it. No implementation. The `memory/` directory that already exists is empty, and you haven't created `postgres/` yet. That's doc 06.
 
 
 ## Verify

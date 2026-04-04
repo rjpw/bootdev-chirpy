@@ -1,6 +1,6 @@
 # 04 — PostgresStore Implementation and Snapshot/Restore Tests
 
-In doc 03b you built a memory store that satisfies `UserStore`. Now you'll replace it with a real Postgres-backed implementation. The interface doesn't change. The tests you wrote against the contract should pass against this new backend without modification. That's the payoff.
+In doc 02 you built a memory store that satisfies `UserStore`. Now you'll replace it with a real Postgres-backed implementation. The interface doesn't change. The tests you wrote against the contract should pass against this new backend without modification. That's the payoff.
 
 In this step you'll build the concrete `PostgresStore` that satisfies the `UserStore` interface, backed by sqlc-generated queries. Then you'll test it using testcontainers' snapshot/restore feature, which gives you committed-data isolation between tests.
 
@@ -11,7 +11,7 @@ By the end of this doc, you'll have:
 
 ## Why a different isolation strategy here
 
-In doc 02, you tested sqlc queries with transaction rollback. That was appropriate because you were testing individual SQL statements — does this query work, does it return the right types, does it handle constraints?
+In doc 05, you tested sqlc queries with transaction rollback. That was appropriate because you were testing individual SQL statements — does this query work, does it return the right types, does it handle constraints?
 
 At the store layer, you're testing higher-level behavior:
 - Does `CreateUser` generate a valid UUID and timestamps?
@@ -40,7 +40,7 @@ You have a design choice here. A few options:
 
 **Option C:** Return a struct that holds both.
 
-Think about what the caller needs. For sqlc query tests (doc 02), they only need `*sql.DB`. For store tests, they need both. Option A or B keeps things simple. Option C is more extensible.
+Think about what the caller needs. For sqlc query tests (doc 05), they only need `*sql.DB`. For store tests, they need both. Option A or B keeps things simple. Option C is more extensible.
 
 Here's the shape for Option A:
 
@@ -59,7 +59,7 @@ once.Do(func() {
 })
 ```
 
-> **Hint:** You'll need to update doc 02's `setupTx` helper if you change the `Setup` signature. The simplest fix: `setupTx` calls `Setup` and ignores the container return value.
+> **Hint:** You'll need to update doc 05's `setupTx` helper if you change the `Setup` signature. The simplest fix: `setupTx` calls `Setup` and ignores the container return value.
 
 
 ## Step 2: Create the PostgresStore
@@ -119,7 +119,7 @@ func toStoreUser(u database.User) store.User {
 }
 ```
 
-**`mapError`** — translates database errors to store sentinel errors. This is where you use the `*pq.Error` inspection from doc 02:
+**`mapError`** — translates database errors to store sentinel errors. This is where you use the `*pq.Error` inspection from doc 05:
 
 ```go
 func mapError(err error) error {
@@ -231,7 +231,7 @@ func TestCreateUserDuplicateEmail(t *testing.T) {
 }
 ```
 
-Notice the difference from doc 02's tests:
+Notice the difference from doc 05's tests:
 - You're testing through the store interface, not sqlc directly
 - You don't construct `CreateUserParams` — the store handles that
 - You check for `store.ErrConflict`, not `*pq.Error` — the error mapping is part of what you're testing
@@ -267,9 +267,9 @@ Run twice to confirm idempotency.
 
 1. **Remove the Restore call.** Comment out the `ctr.Restore` in `setupStore`'s cleanup. Run the tests. Do they still pass? Run them again. What happens? This demonstrates why snapshot/restore matters for committed-data tests.
 
-2. **Compare speed.** Time your sqlc query tests (doc 02) vs your store tests. How much slower is snapshot/restore compared to transaction rollback? Is the difference acceptable for the number of tests you have?
+2. **Compare speed.** Time your sqlc query tests (doc 05) vs your store tests. How much slower is snapshot/restore compared to transaction rollback? Is the difference acceptable for the number of tests you have?
 
-3. **Cross-connection visibility.** In a store test, after `CreateUser`, open a second `*sql.DB` connection to the same container and query for the user. Can you find it? (You should be able to — the data is committed.) Try the same thing in a doc 02 transaction-rollback test. Can you find it? (You shouldn't — it's uncommitted.)
+3. **Cross-connection visibility.** In a store test, after `CreateUser`, open a second `*sql.DB` connection to the same container and query for the user. Can you find it? (You should be able to — the data is committed.) Try the same thing in a doc 05 transaction-rollback test. Can you find it? (You shouldn't — it's uncommitted.)
 
 4. **Error wrapping.** If you chose to wrap errors in `mapError` (using `%w`), verify that `errors.Is(err, store.ErrConflict)` still works. If you chose to replace, try wrapping instead and see how it changes your test assertions and error messages.
 

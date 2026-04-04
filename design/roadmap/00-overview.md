@@ -64,16 +64,18 @@ Each layer only knows about the one directly below it. sqlc and goose are implem
 
 | Doc | What you'll build | Key Go concepts |
 |-----|-------------------|-----------------|
-| [01-testdb-helper](01-testdb-helper.md) | `internal/testdb/` — shared test container + migrations | `embed.FS`, `sync.Once`, `t.Cleanup()` |
-| [02-sqlc-query-tests](02-sqlc-query-tests.md) | `internal/database/queries_test.go` | `DBTX` interface, tx rollback, table-driven tests |
-| [03-store-interface](03-store-interface.md) | `internal/store/store.go`, `errors.go` | Interface design, sentinel errors |
-| [03b-memory-store](03b-memory-store.md) | `internal/store/memory/` — prove the interface | `sync.RWMutex`, interface satisfaction |
-| [04-postgres-store](04-postgres-store.md) | `internal/store/postgres/` | Snapshot/restore, error mapping, composition |
-| [05-wire-and-integrate](05-wire-and-integrate.md) | Updated `config.go`, `main.go`, API tests | Dependency injection, composition root |
-| [06-developer-workflow](06-developer-workflow.md) | Build tags, makefile targets, README | `//go:build`, test organization |
-| [07-migrate-subcommand](07-migrate-subcommand.md) | `./chirpy migrate up` — self-contained binary | `os.Args`, goose provider, `fs.Sub` |
+| [01-store-interface](01-store-interface.md) | `internal/store/store.go`, `errors.go` | Interface design, sentinel errors |
+| [02-memory-store](02-memory-store.md) | `internal/store/memory/` — prove the interface | `sync.RWMutex`, interface satisfaction |
+| [03-wire-and-integrate](03-wire-and-integrate.md) | Updated `config.go`, `main.go`, API tests | Dependency injection, composition root |
+| [04-testdb-helper](04-testdb-helper.md) | `internal/testdb/` — shared test container + migrations | `embed.FS`, `sync.Once`, `t.Cleanup()` |
+| [05-sqlc-query-tests](05-sqlc-query-tests.md) | `internal/database/queries_test.go` | `DBTX` interface, tx rollback, table-driven tests |
+| [06-postgres-store](06-postgres-store.md) | `internal/store/postgres/` | Snapshot/restore, error mapping, composition |
+| [07-developer-workflow](07-developer-workflow.md) | Build tags, makefile targets, README | `//go:build`, test organization |
+| [08-migrate-subcommand](08-migrate-subcommand.md) | `./chirpy migrate up` — self-contained binary | `os.Args`, goose provider, `fs.Sub` |
 
 Work through them in order. Each doc builds on the previous one.
+
+The first three docs (01, 02, 03) require no database and no Docker. You'll have a working server with a memory-backed store before touching Postgres. Docs 04, 05, and 06 introduce the database layer incrementally. 
 
 
 ## Prerequisites

@@ -7,7 +7,7 @@ By the end of this doc, you'll have:
 - `internal/store/memory/memory_test.go` — the same tests you'll later write for PostgresStore
 - The server running with the memory store, creating users via curl
 
-This is disposable scaffolding. The memory store exists to prove the interface works before database complexity arrives. It will be replaced in doc 04. The interface it validates stays forever.
+This is disposable scaffolding. The memory store exists to prove the interface works before database complexity arrives. It will be replaced in doc 06. The interface it validates stays forever.
 
 
 ## Why bother
@@ -15,8 +15,8 @@ This is disposable scaffolding. The memory store exists to prove the interface w
 If you only ever have one implementation of an interface, the interface feels like ceremony. The moment you have two, it clicks. Building the memory store first gives you:
 
 1. **Proof the interface is sufficient.** If the memory store can't implement `CreateUser` cleanly, the interface signature is wrong — and it's cheaper to fix now than after you've wired up sqlc and testcontainers.
-2. **A test suite you can reuse.** The tests you write here test the `UserStore` contract, not the memory implementation. When you build `PostgresStore` in doc 04, you'll run the same assertions and they should pass without changes.
-3. **The swap moment.** In doc 04, you'll change one line in `main.go` and watch everything keep working. That experience is worth more than any design doc.
+2. **A test suite you can reuse.** The tests you write here test the `UserStore` contract, not the memory implementation. When you build `PostgresStore` in doc 06, you'll run the same assertions and they should pass without changes.
+3. **The swap moment.** In doc 06, you'll change one line in `main.go` and watch everything keep working. That experience is worth more than any design doc.
 
 
 ## Step 1: Implement the memory store
@@ -91,7 +91,7 @@ if !errors.Is(err, store.ErrConflict) {
 }
 ```
 
-These are the same assertions you'll use in doc 04 for PostgresStore. The tests don't know or care what's behind the interface.
+These are the same assertions you'll use in doc 06 for PostgresStore. The tests don't know or care what's behind the interface.
 
 > **Hint:** Consider extracting the test assertions into a shared helper package (e.g., `internal/store/storetest/`) that both memory and postgres tests can call. This isn't required now, but think about whether it would reduce duplication when you have two implementations.
 
@@ -144,7 +144,7 @@ If you haven't added the handler yet, that's fine — the wiring is proven by th
 
 ## What happens next
 
-In doc 04, you'll build `PostgresStore` — a second implementation of the same interface. Then you'll change one line in `main.go`:
+In doc 06, you'll build `PostgresStore` — a second implementation of the same interface. Then you'll change one line in `main.go`:
 
 ```go
 // before
@@ -178,7 +178,7 @@ The memory store stays in the repo as a reference implementation and as the back
 
 3. **Shared test assertions.** If you extracted test helpers into `internal/store/storetest/`, try running them against both the memory store and (later) the Postgres store. Same assertions, different backends, same results. That's the contract.
 
-4. **Compare to a fake.** Doc 05 introduces function-field fakes for API handler tests. How is a fake different from the memory store? (A fake returns canned data you configure per test. The memory store has real behavior — it actually stores and retrieves. Both satisfy the interface, but they serve different testing purposes.)
+4. **Compare to a fake.** Doc 03 introduces function-field fakes for API handler tests. How is a fake different from the memory store? (A fake returns canned data you configure per test. The memory store has real behavior — it actually stores and retrieves. Both satisfy the interface, but they serve different testing purposes.)
 
 
 ## Reference

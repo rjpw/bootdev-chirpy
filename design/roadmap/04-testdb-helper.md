@@ -18,17 +18,16 @@ A single `internal/testdb` package solves this. Import it, call `Setup`, get a d
 
 ## Step 1: Add dependencies
 
-You need two new modules:
+You need testcontainers for spinning up Postgres in tests, and goose for running migrations programmatically:
 
 ```bash
 go get github.com/testcontainers/testcontainers-go
 go get github.com/testcontainers/testcontainers-go/modules/postgres
 go get github.com/pressly/goose/v3
+go mod tidy
 ```
 
-You already have `github.com/lib/pq` in your `go.mod` — that's the database driver, and it stays.
-
-> **Go idiom: module management.** `go get` adds the dependency to `go.mod` and downloads it. After adding dependencies, run `go mod tidy` to clean up anything unused. Get in the habit of checking `go.mod` after adding dependencies to see what changed.
+You already have `github.com/lib/pq` in your `go.mod` — that's the database driver, and it stays. All three new dependencies are used in this doc, so `go mod tidy` won't remove them.
 
 
 ## Step 2: Creating migrations with goose
@@ -257,7 +256,7 @@ You should see testcontainers log output showing the container starting, then yo
 
 4. **Inspect the running container.** While a test is running (add a `time.Sleep` if needed), run `docker ps` in another terminal. Can you see the testcontainer? Can you `docker exec` into it and run `psql`?
 
-5. **Read the testcontainers-go docs.** Look at the [Postgres module reference](https://golang.testcontainers.org/modules/postgres/) — especially the Snapshot/Restore section. You'll use that in doc 04.
+5. **Read the testcontainers-go docs.** Look at the [Postgres module reference](https://golang.testcontainers.org/modules/postgres/) — especially the Snapshot/Restore section. You'll use that in doc 06.
 
 
 ## Reference

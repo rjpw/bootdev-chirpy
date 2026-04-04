@@ -21,12 +21,12 @@ With an embedded migrate subcommand, they need:
 
 1. The binary
 
-That's it. `./chirpy migrate up` against their connection string. The SQL is baked in. See [design/sql-vs-go-migrations.md](../design/sql-vs-go-migrations.md) for the rationale.
+That's it. `./chirpy migrate up` against their connection string. The SQL is baked in. See [design/sql-vs-go-migrations.md](../sql-vs-go-migrations.md) for the rationale.
 
 
 ## Step 1: Reuse the embedded migrations
 
-You already have (or will have) an embed package from doc 01. The same `embed.FS` that testdb uses is what the migrate subcommand will use. No duplication — one embed declaration, two consumers.
+You already have (or will have) an embed package from doc 04. The same `embed.FS` that testdb uses is what the migrate subcommand will use. No duplication — one embed declaration, two consumers.
 
 If your embed lives in `internal/schema/`:
 
@@ -230,4 +230,4 @@ Update the release notes template in [devops/03-release-process.md](devops/03-re
 
 - [goose Provider API](https://pressly.github.io/goose/blog/2023/goose-provider/)
 - [Go embed package](https://pkg.go.dev/embed)
-- [design/sql-vs-go-migrations.md](../design/sql-vs-go-migrations.md)
+- [design/sql-vs-go-migrations.md](../sql-vs-go-migrations.md)

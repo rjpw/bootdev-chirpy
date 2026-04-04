@@ -63,7 +63,7 @@ func TestSomething(t *testing.T) {
 
 After the test function returns, `defer tx.Rollback()` undoes everything. The next test starts with a clean database. No data leaks between tests, and it's fast because there's no I/O to disk (Postgres keeps uncommitted data in memory).
 
-The one limitation: if you need to test behavior that depends on committed data being visible to other connections (e.g., testing that a unique constraint works across concurrent transactions), you'll need a different isolation strategy. That's what snapshot/restore is for in doc 04. For query-level tests, transaction rollback is the right tool.
+The one limitation: if you need to test behavior that depends on committed data being visible to other connections (e.g., testing that a unique constraint works across concurrent transactions), you'll need a different isolation strategy. That's what snapshot/restore is for in doc 06. For query-level tests, transaction rollback is the right tool.
 
 
 ## Step 1: Create the test file
@@ -210,7 +210,7 @@ if errors.As(err, &pgErr) {
 
 > **Go idiom: errors.As for type assertion on errors.** `errors.As` unwraps the error chain and checks if any error in the chain matches the target type. It's the error-handling equivalent of a type assertion, but it works through wrapped errors. Always prefer `errors.As` over direct type assertions on errors.
 
-The Postgres error code `23505` is the standard code for unique constraint violations. You can find the full list in the [PostgreSQL error codes documentation](https://www.postgresql.org/docs/current/errcodes-appendix.html). Knowing how to inspect these codes is important — you'll use this in doc 04 when mapping database errors to store-level sentinel errors.
+The Postgres error code `23505` is the standard code for unique constraint violations. You can find the full list in the [PostgreSQL error codes documentation](https://www.postgresql.org/docs/current/errcodes-appendix.html). Knowing how to inspect these codes is important — you'll use this in doc 06 when mapping database errors to store-level sentinel errors.
 
 
 ## Step 5: Consider table-driven tests (optional)
