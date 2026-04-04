@@ -85,7 +85,7 @@ Before starting:
 - [ ] Docker is running (`docker info` should succeed)
 - [ ] Your existing tests pass (`go test -race ./...`)
 - [ ] Postgres container is not required to be running — testcontainers will manage its own
-- [ ] You've read through `design/design-faq.md` and `design/design-help-claude.md`
+- [ ] You've read through `design/02-design-faq.md` and `design/01-design-basics.md`
 - [ ] You're comfortable with `go test`, `go build`, and your existing makefile targets
 
 
