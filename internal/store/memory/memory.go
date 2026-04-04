@@ -17,6 +17,8 @@ type MemoryStore struct {
 	users map[uuid.UUID]store.User
 }
 
+var _ store.UserStore = (*MemoryStore)(nil) // ensure MemoryStore implements the UserStore interface
+
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		users: make(map[uuid.UUID]store.User),
@@ -31,7 +33,7 @@ func (s *MemoryStore) CreateUser(ctx context.Context, email string) (*store.User
 	// check for existing user with the same email
 	for _, user := range s.users {
 		if user.Email == email {
-			return &store.User{}, store.ErrConflict
+			return nil, store.ErrConflict
 		}
 	}
 
@@ -58,7 +60,24 @@ func (s *MemoryStore) GetUserByEmail(ctx context.Context, email string) (*store.
 		}
 	}
 
-	return &store.User{}, store.ErrNotFound
+	return nil, store.ErrNotFound
+}
+
+func (s *MemoryStore) GetUserByID(ctx context.Context, id string) (*store.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, ok := s.users[parsedID]
+	if !ok {
+		return nil, store.ErrNotFound
+	}
+
+	return &user, nil
 }
 
 func (s *MemoryStore) DeleteUser(ctx context.Context, email string) error {

@@ -1,4 +1,4 @@
-package memory
+package memory_test
 
 import (
 	"context"
@@ -8,10 +8,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/store"
+	"github.com/rjpw/bootdev-chirpy/internal/store/memory"
 )
 
 func newStore() store.UserStore {
-	return NewMemoryStore()
+	return memory.NewMemoryStore()
 }
 
 func TestCreateUser(t *testing.T) {

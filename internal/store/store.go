@@ -21,6 +21,7 @@ func (u User) ShortID() string {
 type UserStore interface {
 	CreateUser(ctx context.Context, email string) (*User, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
 	UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error
 	DeleteUser(ctx context.Context, email string) error
 	DeleteAllUsers(ctx context.Context) error
