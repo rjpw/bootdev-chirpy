@@ -15,6 +15,10 @@ lint:
 test:
 	go test -race ./...
 
+sql-status:
+	cd sql/schema && \
+	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" status
+
 sql-migrate:
 	cd sql/schema && \
 	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" up
