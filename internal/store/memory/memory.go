@@ -47,3 +47,62 @@ func (s *MemoryStore) CreateUser(ctx context.Context, email string) (store.User,
 	s.users[id] = user
 	return user, nil
 }
+
+func (s *MemoryStore) GetUserByEmail(ctx context.Context, email string) (store.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, user := range s.users {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+
+	return store.User{}, store.ErrNotFound
+}
+
+func (s *MemoryStore) DeleteUser(ctx context.Context, email string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for id, user := range s.users {
+		if user.Email == email {
+			delete(s.users, id)
+			return nil
+		}
+	}
+
+	return store.ErrNotFound
+}
+
+func (s *MemoryStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) (store.User, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var user *store.User
+	for id, u := range s.users {
+		if u.Email == oldEmail {
+			user = &u
+			delete(s.users, id)
+			break
+		}
+	}
+
+	if user == nil {
+		return store.User{}, store.ErrNotFound
+	}
+
+	user.Email = newEmail
+	user.UpdatedAt = time.Now().UTC().Truncate(time.Microsecond)
+	s.users[user.ID] = *user
+
+	return *user, nil
+}
+
+func (s *MemoryStore) DeleteAllUsers(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.users = make(map[uuid.UUID]store.User)
+	return nil
+}

@@ -21,6 +21,10 @@ import (
 func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
+	platform := os.Getenv("PLATFORM")
+	if platform == "" {
+		platform = "production"
+	}
 	db, err := sql.Open("postgres", dbURL)
 
 	if err != nil {
@@ -29,11 +33,11 @@ func main() {
 	defer db.Close()
 	dbQueries := database.New(db)
 
-	cfg := &config.Config{
-		Metrics: &metrics.ServerMetrics{},
-		Db:      dbQueries,
-		Users:   memory.NewMemoryStore(),
-	}
+	cfg := config.NewConfig(platform,
+		&metrics.ServerMetrics{},
+		dbQueries,
+		memory.NewMemoryStore(),
+	)
 
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",

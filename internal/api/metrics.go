@@ -17,10 +17,3 @@ func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, tmpl, s.cfg.Metrics.FileserverHits())
 }
-
-func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	s.cfg.Metrics.Reset()
-	fmt.Fprintf(w, "Hits: %d", s.cfg.Metrics.FileserverHits())
-}

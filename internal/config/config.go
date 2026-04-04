@@ -7,7 +7,17 @@ import (
 )
 
 type Config struct {
-	Metrics *metrics.ServerMetrics
-	Db      *database.Queries
-	Users   store.UserStore
+	Platform string
+	Metrics  *metrics.ServerMetrics
+	Db       *database.Queries
+	Users    store.UserStore
+}
+
+func NewConfig(platform string, metrics *metrics.ServerMetrics, db *database.Queries, users store.UserStore) *Config {
+	return &Config{
+		Platform: platform,
+		Metrics:  metrics,
+		Db:       db,
+		Users:    users,
+	}
 }

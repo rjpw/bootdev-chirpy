@@ -7,10 +7,14 @@ import (
 
 	"github.com/rjpw/bootdev-chirpy/internal/config"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
+	"github.com/rjpw/bootdev-chirpy/internal/store/memory"
 )
 
 func newTestServer() *Server {
-	cfg := &config.Config{Metrics: &metrics.ServerMetrics{}}
+	cfg := &config.Config{
+		Metrics: &metrics.ServerMetrics{},
+		Users:   memory.NewMemoryStore(),
+	}
 	return NewServer(cfg, "./testdata")
 }
 

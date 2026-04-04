@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -10,10 +9,6 @@ import (
 // struct to receive a JSON api `chirp`
 type parameters struct {
 	Body string `json:"body"`
-}
-
-type jsonError struct {
-	Error string `json:"error"`
 }
 
 type jsonSuccess struct {
@@ -24,23 +19,6 @@ type jsonSuccess struct {
 func (p *parameters) Validate() bool {
 	bodyLen := len(p.Body)
 	return bodyLen > 0 && bodyLen <= 140
-}
-
-func (s *Server) respondWithJSON(w http.ResponseWriter, statusCode int, payload any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(statusCode)
-	data, err := json.Marshal(payload)
-	if err != nil {
-		s.respondWithMessage(w, 500, "unexpected server error")
-		return
-	}
-	fmt.Fprintf(w, "%s", string(data))
-}
-
-func (s *Server) respondWithMessage(w http.ResponseWriter, statusCode int, message string) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(statusCode)
-	fmt.Fprintf(w, "%s", message)
 }
 
 func (s *Server) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
