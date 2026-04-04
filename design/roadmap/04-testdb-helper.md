@@ -11,7 +11,11 @@ By the end of this doc, you'll have a `Setup` function that:
 
 ## Why a shared helper
 
-Every test package that needs a real database will need the same boilerplate: start a container, get a connection string, run migrations. If you duplicate that, you'll have multiple containers starting up and migrations running in parallel. Worse, when the setup changes (new migration, different Postgres version), you'd have to update every test file.
+Without testcontainers, every developer needs a running Postgres instance configured the right way — correct version, correct database name, correct user, migrations applied. That's a setup doc someone has to write, everyone has to follow, and nobody keeps current. A new team member clones the repo, runs `go test`, and gets a wall of connection errors. CI needs its own Postgres service configured in the pipeline YAML.
+
+Testcontainers eliminates that. `go test` starts a disposable Postgres container automatically — correct version, clean schema, migrations applied. No setup doc. No "works on my machine." A new developer clones the repo, runs `go test`, and gets results. CI runs the same command with no special database configuration.
+
+The shared helper takes it one step further. Every test package that needs a real database will need the same boilerplate: start a container, get a connection string, run migrations. If you duplicate that, you'll have multiple containers starting up and migrations running in parallel. Worse, when the setup changes (new migration, different Postgres version), you'd have to update every test file.
 
 A single `internal/testdb` package solves this. Import it, call `Setup`, get a database.
 
