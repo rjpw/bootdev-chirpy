@@ -7,7 +7,7 @@ import (
 )
 
 func TestMetricsInitiallyZero(t *testing.T) {
-	srv := newTestServer()
+	srv := newTestServer("dev")
 	r := httptest.NewRequest("GET", "/admin/metrics", nil)
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, r)
@@ -23,7 +23,7 @@ func TestMetricsInitiallyZero(t *testing.T) {
 }
 
 func TestMetricsReflectHits(t *testing.T) {
-	srv := newTestServer()
+	srv := newTestServer("dev")
 
 	cases := []struct {
 		method      string
@@ -62,7 +62,7 @@ func TestMetricsReflectHits(t *testing.T) {
 }
 
 func TestResetClearsHits(t *testing.T) {
-	srv := newTestServer()
+	srv := newTestServer("dev")
 
 	r := httptest.NewRequest("GET", "/app/hello.txt", nil)
 	w := httptest.NewRecorder()

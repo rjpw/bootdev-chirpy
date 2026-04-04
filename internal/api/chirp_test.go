@@ -34,7 +34,7 @@ func TestValidateChirpAPI(t *testing.T) {
 			if err != nil {
 				t.Fatalf("json.Marshal(params) error: %v", err)
 			}
-			srv := newTestServer()
+			srv := newTestServer("dev")
 
 			r := httptest.NewRequest("POST", "/api/validate_chirp", strings.NewReader(string(payload)))
 			w := httptest.NewRecorder()
@@ -96,7 +96,7 @@ func TestValidateChirpFilter(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			srv := newTestServer()
+			srv := newTestServer("dev")
 			r := httptest.NewRequest("POST", "/api/validate_chirp", strings.NewReader(tc.body))
 			w := httptest.NewRecorder()
 			srv.ServeHTTP(w, r)

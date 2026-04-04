@@ -15,7 +15,7 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/config"
 	"github.com/rjpw/bootdev-chirpy/internal/database"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
-	"github.com/rjpw/bootdev-chirpy/internal/store/memory"
+	"github.com/rjpw/bootdev-chirpy/internal/store/postgres"
 )
 
 func main() {
@@ -25,18 +25,16 @@ func main() {
 	if platform == "" {
 		platform = "production"
 	}
-	db, err := sql.Open("postgres", dbURL)
 
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
 	defer db.Close()
-	dbQueries := database.New(db)
 
 	cfg := config.NewConfig(platform,
 		&metrics.ServerMetrics{},
-		dbQueries,
-		memory.NewMemoryStore(),
+		postgres.NewPostgresStore(database.New(db)),
 	)
 
 	srv := &http.Server{

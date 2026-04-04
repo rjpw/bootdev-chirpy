@@ -23,7 +23,7 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) CreateUser(ctx context.Context, email string) (store.User, error) {
+func (s *MemoryStore) CreateUser(ctx context.Context, email string) (*store.User, error) {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -31,7 +31,7 @@ func (s *MemoryStore) CreateUser(ctx context.Context, email string) (store.User,
 	// check for existing user with the same email
 	for _, user := range s.users {
 		if user.Email == email {
-			return store.User{}, store.ErrConflict
+			return &store.User{}, store.ErrConflict
 		}
 	}
 
@@ -45,20 +45,20 @@ func (s *MemoryStore) CreateUser(ctx context.Context, email string) (store.User,
 	}
 
 	s.users[id] = user
-	return user, nil
+	return &user, nil
 }
 
-func (s *MemoryStore) GetUserByEmail(ctx context.Context, email string) (store.User, error) {
+func (s *MemoryStore) GetUserByEmail(ctx context.Context, email string) (*store.User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	for _, user := range s.users {
 		if user.Email == email {
-			return user, nil
+			return &user, nil
 		}
 	}
 
-	return store.User{}, store.ErrNotFound
+	return &store.User{}, store.ErrNotFound
 }
 
 func (s *MemoryStore) DeleteUser(ctx context.Context, email string) error {
@@ -75,7 +75,7 @@ func (s *MemoryStore) DeleteUser(ctx context.Context, email string) error {
 	return store.ErrNotFound
 }
 
-func (s *MemoryStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) (store.User, error) {
+func (s *MemoryStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -89,14 +89,14 @@ func (s *MemoryStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail st
 	}
 
 	if user == nil {
-		return store.User{}, store.ErrNotFound
+		return store.ErrNotFound
 	}
 
 	user.Email = newEmail
 	user.UpdatedAt = time.Now().UTC().Truncate(time.Microsecond)
 	s.users[user.ID] = *user
 
-	return *user, nil
+	return nil
 }
 
 func (s *MemoryStore) DeleteAllUsers(ctx context.Context) error {

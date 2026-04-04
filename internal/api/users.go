@@ -9,7 +9,7 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/store"
 )
 
-func (s *Server) CreateUser(ctx context.Context, email string) (store.User, error) {
+func (s *Server) CreateUser(ctx context.Context, email string) (*store.User, error) {
 	return s.cfg.Users.CreateUser(ctx, email)
 }
 

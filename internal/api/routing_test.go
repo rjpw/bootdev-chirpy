@@ -20,7 +20,7 @@ func TestMethodResponseCodes(t *testing.T) {
 		{"GET", "/api/healthz", 200, ""},
 		{"POST", "/api/healthz", 405, ""},
 		{"GET", "/admin/reset", 405, ""},
-		{"POST", "/admin/reset", 200, ""},
+		{"POST", "/admin/reset", 200, ""}, // forbidden in production, but 200 in platform "dev"
 		{"GET", "/api/validate_chirp", 405, ""},
 		{"PUT", "/api/validate_chirp", 405, ""},
 		{"POST", "/api/validate_chirp", 200, "{\"body\":\"hello world\"}"},
@@ -28,7 +28,7 @@ func TestMethodResponseCodes(t *testing.T) {
 		{"POST", "/api/validate_chirp", 400, "{}"},
 	}
 	for _, tc := range cases {
-		srv := newTestServer()
+		srv := newTestServer("dev")
 		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(string(tc.body)))
 		w := httptest.NewRecorder()
 		srv.ServeHTTP(w, r)
@@ -51,7 +51,7 @@ func TestContentType(t *testing.T) {
 		{"POST", "/api/validate_chirp", "application/json; charset=utf-8", "{body: \"hello world\"}"},
 	}
 	for _, tc := range cases {
-		srv := newTestServer()
+		srv := newTestServer("dev")
 		r := httptest.NewRequest(tc.method, tc.path, nil)
 		w := httptest.NewRecorder()
 		srv.ServeHTTP(w, r)

@@ -11,7 +11,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	s := newTestServer()
+	s := newTestServer("dev")
 	ctx := context.Background()
 
 	email := "test@example.com"
@@ -25,7 +25,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserConflict(t *testing.T) {
-	s := newTestServer()
+	s := newTestServer("dev")
 	ctx := context.Background()
 
 	email := "test@example.com"

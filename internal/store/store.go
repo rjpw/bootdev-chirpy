@@ -29,9 +29,9 @@ func (u User) MarshalJSON() ([]byte, error) {
 }
 
 type UserStore interface {
-	CreateUser(ctx context.Context, email string) (User, error)
-	GetUserByEmail(ctx context.Context, email string) (User, error)
+	CreateUser(ctx context.Context, email string) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error
 	DeleteUser(ctx context.Context, email string) error
-	UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) (User, error)
 	DeleteAllUsers(ctx context.Context) error
 }
