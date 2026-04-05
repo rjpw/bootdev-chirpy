@@ -117,13 +117,41 @@ Integration tests are gated behind a `//go:build integration` tag. `make test` s
 | `make run` | Start with hot reload (air) |
 | `make build` | Compile to `tmp/main` |
 | `make test` | Run all tests with race detector |
+| `make test-integration` | Run all tests including integration |
+| `make test-db` | Run database/store integration tests only |
 | `make lint` | Run golangci-lint |
 | `make format` | Auto-format with golangci-lint |
 | `make sql-status` | Show migration status |
 | `make sql-migrate` | Apply pending migrations |
 | `make sql-migrate-down` | Roll back last migration |
 | `make sql-generate` | Regenerate sqlc code |
+| `make sql-create` | Create a new timestamped migration |
+| `make sql-fix` | Renumber migrations for release |
+| `make start-db` | Start Postgres via Docker Compose |
+| `make stop-db` | Stop Postgres |
+
+## Migrations
+
+Apply migrations using the built-in subcommand (no goose CLI required):
+
+```bash
+export DB_URL="postgres://user:pass@host:5432/chirpy?sslmode=disable"
+./chirpy migrate up
+```
+
+Check migration status:
+
+```bash
+./chirpy migrate status
+```
+
+For development, you can also use the goose CLI directly via `make sql-migrate`.
+
+## Releases
+
+See [design/roadmap/devops/03-release-process.md](design/roadmap/devops/03-release-process.md) for the full release workflow including tagging, migration discipline, and upgrade instructions.
 
 ## Architecture
 
 See `design/` for roadmap docs, design decisions, and FAQs about the project's interface-driven architecture.
+

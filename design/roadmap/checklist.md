@@ -70,8 +70,8 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 
 ## Doc 08 — Migrate Subcommand
 
-- [ ] `./chirpy migrate up` applies pending migrations
-- [ ] `./chirpy migrate status` shows migration state
-- [ ] SQL files embedded in binary via `embed.FS`
-- [ ] `./chirpy` (no args) still starts the server
-- [ ] README documents the subcommand
+- [x] `./chirpy migrate up` applies pending migrations
+- [x] `./chirpy migrate status` shows migration state
+- [x] SQL files embedded in binary via `embed.FS`
+- [x] `./chirpy` (no args) still starts the server
+- [x] README documents the subcommand
