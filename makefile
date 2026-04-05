@@ -16,15 +16,15 @@ test:
 	go test -race ./...
 
 sql-status:
-	cd sql/schema && \
+	cd internal/schema/migrations && \
 	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" status
 
 sql-migrate:
-	cd sql/schema && \
+	cd internal/schema/migrations && \
 	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" up
 
 sql-migrate-down:
-	cd sql/schema && \
+	cd internal/schema/migrations && \
 	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" down
 
 sql-generate:

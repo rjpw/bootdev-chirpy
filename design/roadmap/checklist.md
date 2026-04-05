@@ -31,21 +31,21 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 
 ## Doc 04 — Testdb Helper
 
-- [ ] `internal/testdb/` package exists
-- [ ] `Setup` function starts a Postgres container
-- [ ] Migrations embedded via `embed.FS`
-- [ ] `sync.Once` ensures single container per test run
-- [ ] `t.Cleanup` tears down the container
-- [ ] Verification test passes
+- [x] `internal/testdb/` package exists
+- [x] `Setup` function starts a Postgres container
+- [x] Migrations embedded via `embed.FS`
+- [x] `sync.Once` ensures single container per test run
+- [x] `t.Cleanup` tears down the container (skipped — Ryuk handles it)
+- [x] Verification test passes
 
 
 ## Doc 05 — sqlc Query Tests
 
-- [ ] `internal/database/queries_test.go` exists
-- [ ] Tests use testdb helper
-- [ ] Transaction rollback isolation
-- [ ] `TestCreateUser` against real Postgres
-- [ ] `pq.Error` inspection for unique constraint
+- [x] `internal/database/queries_test.go` exists
+- [x] Tests use testdb helper
+- [x] Transaction rollback isolation
+- [x] `TestCreateUser` against real Postgres
+- [x] `pq.Error` inspection for unique constraint
 
 
 ## Doc 06 — Postgres Store
