@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +12,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rjpw/bootdev-chirpy/internal/api"
 	"github.com/rjpw/bootdev-chirpy/internal/config"
-	"github.com/rjpw/bootdev-chirpy/internal/database"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
 	"github.com/rjpw/bootdev-chirpy/internal/store/postgres"
 )
@@ -30,18 +28,16 @@ func main() {
 		log.Fatalf("Failed to create config: %v", err)
 	}
 
-	dbURL := env.DBURL
-	platform := env.Platform
-
-	db, err := sql.Open(env.DBName, dbURL)
+	store, db, err := postgres.NewPostgresStoreFromURL(env.DBURL)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
 	defer db.Close()
 
-	cfg := config.NewConfig(platform,
+	cfg := config.NewConfig(
+		env.Platform,
 		&metrics.ServerMetrics{},
-		postgres.NewPostgresStore(database.New(db)),
+		store,
 	)
 
 	srv := &http.Server{
