@@ -1,29 +1,14 @@
 package memory
 
-// This file implements an in-memory user store.
-// It is not intended for production use.
-
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/store"
 )
 
-type Store struct {
-	mu    sync.RWMutex
-	users map[uuid.UUID]store.User
-}
-
 var _ store.UserStore = (*Store)(nil) // ensure MemoryStore implements the UserStore interface
-
-func NewMemoryStore() *Store {
-	return &Store{
-		users: make(map[uuid.UUID]store.User),
-	}
-}
 
 func (s *Store) CreateUser(_ context.Context, email string) (*store.User, error) {
 	s.mu.Lock()
