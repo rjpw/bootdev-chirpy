@@ -60,12 +60,12 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 
 ## Doc 07 — Developer Workflow
 
-- [ ] Integration tests gated behind `//go:build integration`
-- [ ] `make test` runs only fast tests
-- [ ] `make test-integration` runs everything
-- [ ] `make sql-create` generates timestamped migrations
-- [ ] `make sql-fix` renumbers for release
-- [ ] README documents the testing approach
+- [x] Integration tests gated behind `//go:build integration`
+- [x] `make test` runs only fast tests
+- [x] `make test-integration` runs everything
+- [x] `make sql-create` generates timestamped migrations
+- [x] `make sql-fix` renumbers for release
+- [x] README documents the testing approach
 
 
 ## Doc 08 — Migrate Subcommand

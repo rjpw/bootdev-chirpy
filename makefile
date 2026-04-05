@@ -1,7 +1,15 @@
-.PHONY: run lint test build
+-include .env
+
+.PHONY: run build format lint test test-integration sql-create sql-fix sql-status sql-migrate sql-migrate-down sql-generate
 
 run:
 	air
+
+start-db:
+	docker compose up -d
+
+stop-db:
+	docker compose down
 
 build:
 	go build -o tmp/main ./cmd/chirpy
@@ -15,17 +23,27 @@ lint:
 test:
 	go test -race ./...
 
+test-db:
+	go test -race -tags integration -count=1 ./internal/database/... ./internal/store/... ./internal/testdb/...
+
+test-integration:
+	go test -race -tags integration -count=1 ./...
+
+sql-create:
+	@read -p "Migration name: " name; \
+	goose create $$name sql
+
+sql-fix:
+	goose fix
+
 sql-status:
-	cd internal/schema/migrations && \
-	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" status
+	goose status
 
 sql-migrate:
-	cd internal/schema/migrations && \
-	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" up
+	goose up
 
 sql-migrate-down:
-	cd internal/schema/migrations && \
-	goose postgres "postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable" down
+	goose down
 
 sql-generate:
 	sqlc generate

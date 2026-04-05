@@ -1,9 +1,15 @@
-package testdb
+//go:build integration
 
-import "testing"
+package testdb_test
+
+import (
+	"testing"
+
+	"github.com/rjpw/bootdev-chirpy/internal/testdb"
+)
 
 func TestSetup(t *testing.T) {
-	db := Setup(t)
+	db := testdb.Setup(t)
 
 	// Can we reach the database?
 	if err := db.DB.Ping(); err != nil {

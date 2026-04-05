@@ -96,7 +96,19 @@ Fast tests (no Docker required):
 make test
 ```
 
-Integration tests run automatically against a testcontainers-managed Postgres instance — no manual database setup needed.
+Integration tests (requires Docker) run against a testcontainers-managed Postgres instance — no manual database setup needed:
+
+```bash
+make test-integration
+```
+
+Database-only integration tests for faster iteration on SQL and store logic:
+
+```bash
+make test-db
+```
+
+Integration tests are gated behind a `//go:build integration` tag. `make test` skips them automatically.
 
 ## Makefile Targets
 
