@@ -1,6 +1,6 @@
 -include .env
 
-.PHONY: run build format lint test test-integration sql-create sql-fix sql-status sql-migrate sql-migrate-down sql-generate
+.PHONY: run build format lint test test-db test-integration start-db stop-db sql-create sql-fix sql-status sql-migrate sql-migrate-down sql-generate
 
 run:
 	air
