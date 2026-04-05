@@ -50,12 +50,12 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 
 ## Doc 06 — Postgres Store
 
-- [x] `internal/store/postgres/postgres.go` — `PostgresStore` implementing `UserStore`
-- [x] Compile-time interface check: `var _ store.UserStore = (*PostgresStore)(nil)`
+- [x] `internal/store/postgres/store.go` — `Store` implementing `UserStore`
+- [x] Compile-time interface check: `var _ store.UserStore = (*Store)(nil)`
 - [x] `mapError` translates `sql.ErrNoRows` → `ErrNotFound`, pq `23505` → `ErrConflict`
 - [x] Timestamps use `UTC().Truncate(time.Microsecond)`
-- [ ] Snapshot/restore integration tests
-- [ ] Tests run via testcontainers (not local Postgres)
+- [x] Snapshot/restore integration tests
+- [x] Tests run via testcontainers (not local Postgres)
 
 
 ## Doc 07 — Developer Workflow
