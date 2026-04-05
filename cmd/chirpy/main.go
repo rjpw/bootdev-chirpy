@@ -18,15 +18,22 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/store/postgres"
 )
 
+type AppEnvironment struct {
+	DBName   string
+	DBURL    string
+	Platform string
+}
+
 func main() {
-	godotenv.Load()
-	dbURL := os.Getenv("DB_URL")
-	platform := os.Getenv("PLATFORM")
-	if platform == "" {
-		platform = "production"
+	env, err := createEnvironment()
+	if err != nil {
+		log.Fatalf("Failed to create config: %v", err)
 	}
 
-	db, err := sql.Open("postgres", dbURL)
+	dbURL := env.DBURL
+	platform := env.Platform
+
+	db, err := sql.Open(env.DBName, dbURL)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
@@ -46,6 +53,22 @@ func main() {
 	if err := runUntilInterrupt(srv); err != nil {
 		log.Fatalf("HTTP server ListenAndServe: %v", err)
 	}
+}
+
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
+
+func createEnvironment() (*AppEnvironment, error) {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found: %v", err)
+		return nil, err
+	}
+	return &AppEnvironment{
+		DBName:   os.Getenv("DBNAME"),
+		DBURL:    os.Getenv("DB_URL"),
+		Platform: os.Getenv("PLATFORM"),
+	}, nil
 }
 
 func runUntilInterrupt(srv *http.Server) error {

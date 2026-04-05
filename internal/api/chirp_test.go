@@ -28,7 +28,6 @@ func TestValidateChirpAPI(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			params := parameters{Body: tc.body}
 			payload, err := json.Marshal(params)
 			if err != nil {
@@ -36,17 +35,19 @@ func TestValidateChirpAPI(t *testing.T) {
 			}
 			srv := newTestServer("dev")
 
-			r := httptest.NewRequest("POST", "/api/validate_chirp", strings.NewReader(string(payload)))
+			r := httptest.NewRequest(
+				"POST",
+				"/api/validate_chirp",
+				strings.NewReader(string(payload)),
+			)
 			w := httptest.NewRecorder()
 			srv.ServeHTTP(w, r)
 
 			if w.Code != tc.wantCode {
 				t.Errorf("POST /api/validate_chirp: want status %d, got %d", tc.wantCode, w.Code)
 			}
-
 		})
 	}
-
 }
 
 // function to read raw test data from `internal/api/testdata` and return as a string
@@ -95,7 +96,6 @@ func TestValidateChirpFilter(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			srv := newTestServer("dev")
 			r := httptest.NewRequest("POST", "/api/validate_chirp", strings.NewReader(tc.body))
 			w := httptest.NewRecorder()
@@ -106,10 +106,12 @@ func TestValidateChirpFilter(t *testing.T) {
 			}
 
 			if w.Body.String() != tc.reply {
-				t.Errorf("POST /api/validate_chirp: want body %q, got %q", tc.reply, w.Body.String())
+				t.Errorf(
+					"POST /api/validate_chirp: want body %q, got %q",
+					tc.reply,
+					w.Body.String(),
+				)
 			}
-
 		})
 	}
-
 }

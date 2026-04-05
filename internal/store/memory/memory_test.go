@@ -41,7 +41,6 @@ func TestCreateUser(t *testing.T) {
 	if time.Since(user.UpdatedAt) > time.Second*5 {
 		t.Error("Expected UpdatedAt to be recent")
 	}
-
 }
 
 func TestCreateUserConflict(t *testing.T) {

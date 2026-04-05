@@ -12,14 +12,14 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/store"
 )
 
-type PostgresStore struct {
+type Store struct {
 	db *database.Queries
 }
 
-var _ store.UserStore = (*PostgresStore)(nil) // ensure PostgresStore implements the UserStore interface
+var _ store.UserStore = (*Store)(nil) // ensure PostgresStore implements the UserStore interface
 
-func NewPostgresStore(db *database.Queries) *PostgresStore {
-	return &PostgresStore{db: db}
+func NewPostgresStore(db *database.Queries) *Store {
+	return &Store{db: db}
 }
 
 func mapError(err error) error {
@@ -33,7 +33,7 @@ func mapError(err error) error {
 	return err
 }
 
-func (s *PostgresStore) CreateUser(ctx context.Context, email string) (*store.User, error) {
+func (s *Store) CreateUser(ctx context.Context, email string) (*store.User, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	user, err := s.db.CreateUser(ctx, database.CreateUserParams{
 		ID:        uuid.New(),
@@ -44,18 +44,28 @@ func (s *PostgresStore) CreateUser(ctx context.Context, email string) (*store.Us
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &store.User{ID: user.ID, Email: user.Email, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt}, nil
+	return &store.User{
+		ID:        user.ID,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
 }
 
-func (s *PostgresStore) GetUserByEmail(ctx context.Context, email string) (*store.User, error) {
+func (s *Store) GetUserByEmail(ctx context.Context, email string) (*store.User, error) {
 	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &store.User{ID: user.ID, Email: user.Email, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt}, nil
+	return &store.User{
+		ID:        user.ID,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
 }
 
-func (s *PostgresStore) GetUserByID(ctx context.Context, id string) (*store.User, error) {
+func (s *Store) GetUserByID(ctx context.Context, id string) (*store.User, error) {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
@@ -64,10 +74,15 @@ func (s *PostgresStore) GetUserByID(ctx context.Context, id string) (*store.User
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &store.User{ID: user.ID, Email: user.Email, CreatedAt: user.CreatedAt, UpdatedAt: user.UpdatedAt}, nil
+	return &store.User{
+		ID:        user.ID,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}, nil
 }
 
-func (s *PostgresStore) DeleteUser(ctx context.Context, email string) error {
+func (s *Store) DeleteUser(ctx context.Context, email string) error {
 	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
 		return mapError(err)
@@ -75,7 +90,7 @@ func (s *PostgresStore) DeleteUser(ctx context.Context, email string) error {
 	return s.db.DeleteUser(ctx, user.ID)
 }
 
-func (s *PostgresStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error {
+func (s *Store) UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error {
 	_, err := s.db.GetUserByEmail(ctx, newEmail)
 	if err == nil {
 		return store.ErrConflict
@@ -92,6 +107,6 @@ func (s *PostgresStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail 
 	return mapError(err)
 }
 
-func (s *PostgresStore) DeleteAllUsers(ctx context.Context) error {
+func (s *Store) DeleteAllUsers(ctx context.Context) error {
 	return s.db.DeleteAllUsers(ctx)
 }

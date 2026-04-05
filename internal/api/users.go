@@ -14,7 +14,6 @@ func (s *Server) CreateUser(ctx context.Context, email string) (*store.User, err
 }
 
 func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-
 	// email is a field in JSON body, so we need to parse the JSON body to get the email
 	var payload struct {
 		Email string `json:"email"`
@@ -25,7 +24,6 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	email := payload.Email
 	user, err := s.CreateUser(r.Context(), email)
-
 	if err != nil {
 		if errors.Is(err, store.ErrConflict) {
 			s.respondWithMessage(w, http.StatusConflict, "User already exists")
@@ -36,5 +34,4 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.respondWithJSON(w, http.StatusCreated, user)
-
 }

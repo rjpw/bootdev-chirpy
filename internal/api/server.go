@@ -50,10 +50,22 @@ func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
 	// require server config platform to be "dev" to allow reset,
 	// otherwise return 403 Forbidden
 	if s.cfg.Platform != "dev" {
-		s.respondWithMessage(w, http.StatusForbidden, "Forbidden: reset is only allowed in dev environment")
+		s.respondWithMessage(
+			w,
+			http.StatusForbidden,
+			"Forbidden: reset is only allowed in dev environment",
+		)
 	} else {
 		s.cfg.Metrics.Reset()
-		s.cfg.Users.DeleteAllUsers(context.Background())
-		s.respondWithMessage(w, http.StatusOK, fmt.Sprintf("Hits: %d", s.cfg.Metrics.FileserverHits()))
+		err := s.cfg.Users.DeleteAllUsers(context.Background())
+		if err != nil {
+			s.respondWithMessage(w, http.StatusInternalServerError, "Failed to delete all users")
+			return
+		}
+		s.respondWithMessage(
+			w,
+			http.StatusOK,
+			fmt.Sprintf("Hits: %d", s.cfg.Metrics.FileserverHits()),
+		)
 	}
 }

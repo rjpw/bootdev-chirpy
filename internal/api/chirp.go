@@ -32,11 +32,19 @@ func (s *Server) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !decoded.Validate() {
-		s.respondWithJSON(w, http.StatusBadRequest, jsonError{Error: "chirp body must be between 1 and 140 characters"})
+		s.respondWithJSON(
+			w,
+			http.StatusBadRequest,
+			jsonError{Error: "chirp body must be between 1 and 140 characters"},
+		)
 		return
 	}
 
-	s.respondWithJSON(w, http.StatusOK, jsonSuccess{CleanedBody: filterChirp(decoded.Body), Valid: true})
+	s.respondWithJSON(
+		w,
+		http.StatusOK,
+		jsonSuccess{CleanedBody: filterChirp(decoded.Body), Valid: true},
+	)
 }
 
 func filterChirp(body string) string {
@@ -52,9 +60,7 @@ func filterChirp(body string) string {
 				upperWords[i] = "****"
 			}
 		}
-
 	}
 
 	return strings.Join(upperWords, " ")
-
 }

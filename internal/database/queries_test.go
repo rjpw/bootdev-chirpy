@@ -20,7 +20,10 @@ func setupTx(t *testing.T) *database.Queries {
 		t.Fatalf("begin tx: %v", err)
 	}
 	t.Cleanup(func() {
-		tx.Rollback()
+		err := tx.Rollback()
+		if err != nil {
+			t.Fatalf("rollback tx: %v", err)
+		}
 	})
 	return database.New(tx)
 }
@@ -67,7 +70,6 @@ func TestCreateUser(t *testing.T) {
 	if !user.UpdatedAt.Equal(params.UpdatedAt) {
 		t.Errorf("UpdatedAt: got %v, want %v", user.UpdatedAt, params.UpdatedAt)
 	}
-
 }
 
 func TestCreateUserDuplicateEmail(t *testing.T) {
@@ -99,7 +101,6 @@ func TestCreateUserDuplicateEmail(t *testing.T) {
 	} else {
 		t.Errorf("expected *pq.Error, got %T: %v", err, err)
 	}
-
 }
 
 func TestGetUserByEmail(t *testing.T) {
@@ -125,7 +126,10 @@ func TestGetUserByEmail(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			queries := setupTx(t)
 			for _, email := range tc.seedUsers {
-				mustCreateUser(t, queries, email)
+				_, err := mustCreateUser(t, queries, email)
+				if err != nil {
+					t.Fatalf("mustCreateUser(%q): %v", email, err)
+				}
 			}
 			user, err := queries.GetUserByEmail(context.Background(), tc.email)
 			if tc.wantErr {

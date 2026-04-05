@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // Postgres driver
 	"github.com/pressly/goose/v3"
 	"github.com/rjpw/bootdev-chirpy/internal/schema"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -17,7 +17,6 @@ var (
 	once     sync.Once
 	setupErr error
 	testDB   *sql.DB
-	// .. container reference for cleanup
 )
 
 func Setup(t *testing.T) *sql.DB {

@@ -12,21 +12,20 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/store"
 )
 
-type MemoryStore struct {
+type Store struct {
 	mu    sync.RWMutex
 	users map[uuid.UUID]store.User
 }
 
-var _ store.UserStore = (*MemoryStore)(nil) // ensure MemoryStore implements the UserStore interface
+var _ store.UserStore = (*Store)(nil) // ensure MemoryStore implements the UserStore interface
 
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
+func NewMemoryStore() *Store {
+	return &Store{
 		users: make(map[uuid.UUID]store.User),
 	}
 }
 
-func (s *MemoryStore) CreateUser(ctx context.Context, email string) (*store.User, error) {
-
+func (s *Store) CreateUser(_ context.Context, email string) (*store.User, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -50,7 +49,7 @@ func (s *MemoryStore) CreateUser(ctx context.Context, email string) (*store.User
 	return &user, nil
 }
 
-func (s *MemoryStore) GetUserByEmail(ctx context.Context, email string) (*store.User, error) {
+func (s *Store) GetUserByEmail(_ context.Context, email string) (*store.User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -63,7 +62,7 @@ func (s *MemoryStore) GetUserByEmail(ctx context.Context, email string) (*store.
 	return nil, store.ErrNotFound
 }
 
-func (s *MemoryStore) GetUserByID(ctx context.Context, id string) (*store.User, error) {
+func (s *Store) GetUserByID(_ context.Context, id string) (*store.User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -80,7 +79,7 @@ func (s *MemoryStore) GetUserByID(ctx context.Context, id string) (*store.User, 
 	return &user, nil
 }
 
-func (s *MemoryStore) DeleteUser(ctx context.Context, email string) error {
+func (s *Store) DeleteUser(_ context.Context, email string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -94,7 +93,7 @@ func (s *MemoryStore) DeleteUser(ctx context.Context, email string) error {
 	return store.ErrNotFound
 }
 
-func (s *MemoryStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error {
+func (s *Store) UpdateUserEmail(_ context.Context, oldEmail, newEmail string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -118,7 +117,7 @@ func (s *MemoryStore) UpdateUserEmail(ctx context.Context, oldEmail, newEmail st
 	return nil
 }
 
-func (s *MemoryStore) DeleteAllUsers(ctx context.Context) error {
+func (s *Store) DeleteAllUsers(_ context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
