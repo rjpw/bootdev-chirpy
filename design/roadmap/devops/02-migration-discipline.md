@@ -2,6 +2,8 @@
 
 When multiple developers are creating database migrations concurrently, you need rules to prevent conflicts, broken environments, and silent schema drift. This doc covers the practical problems and the conventions that solve them.
 
+Migrations live in `internal/schema/migrations/`. Goose configuration (`GOOSE_DRIVER`, `GOOSE_DBSTRING`, `GOOSE_MIGRATION_DIR`) is set in `.env` and loaded automatically by both the Makefile and the goose CLI.
+
 
 ## The conflict problem
 
@@ -21,11 +23,11 @@ Goose supports timestamp-based migration filenames:
 
 Two developers creating migrations at different times will never collide on the version number. Goose applies them in timestamp order, which matches the order they were written.
 
-Use `goose create` to generate timestamped filenames:
+Use `make sql-create` to generate timestamped filenames:
 
 ```bash
-goose -dir sql/schema create add_chirps sql
-# creates sql/schema/20260404120000_add_chirps.sql
+make sql-create
+# prompts for name, creates internal/schema/migrations/20260404120000_add_chirps.sql
 ```
 
 This is your default during development. Every new migration gets a timestamp.
@@ -52,7 +54,7 @@ By default, goose rejects this. You have two options:
 **Option 1: `--allow-missing` flag.** Tells goose to apply any unapplied migrations regardless of order:
 
 ```bash
-goose -dir sql/schema --allow-missing up
+goose --allow-missing up
 ```
 
 This is safe when the migrations are independent (they touch different tables). It's dangerous when they depend on each other's schema changes.
@@ -72,7 +74,7 @@ feature branch → PR / CI → merge to main → staging → release branch → 
 
 ### Feature branch
 
-Create migrations with `goose create` — always timestamped. Run `make test-integration` locally. The testcontainer applies all migrations from scratch against a fresh database. Commit the timestamped migration files.
+Create migrations with `make sql-create` — always timestamped. Run `make test-integration` locally. The testcontainer applies all migrations from scratch against a fresh database. Commit the timestamped migration files.
 
 Do NOT run `goose fix` here. It renames every migration file in the repo, which guarantees merge conflicts with every other branch that touches migrations.
 
@@ -93,10 +95,16 @@ Timestamped migrations accumulate on main. Their order may be non-sequential acr
 Staging is the first environment with a persistent database — migrations are applied incrementally, not from scratch. Run:
 
 ```bash
-goose -dir sql/schema --allow-missing up
+./chirpy migrate up
 ```
 
-`--allow-missing` because main may have accumulated out-of-order timestamps from concurrent merges. Staging is where you verify that migrations work incrementally, not just from scratch. If staging breaks, you fix it before it reaches production.
+Or with the goose CLI if out-of-order migrations need `--allow-missing`:
+
+```bash
+goose --allow-missing up
+```
+
+Staging is where you verify that migrations work incrementally, not just from scratch. If staging breaks, you fix it before it reaches production.
 
 ### Release branch
 
@@ -104,9 +112,9 @@ When you're ready to cut a release, create a release branch from main:
 
 ```bash
 git checkout -b release/v1.2 main
-goose -dir sql/schema fix
+make sql-fix
 make test-integration    # verify nothing broke
-git add sql/schema/
+git add internal/schema/migrations/
 git commit -m "fix: renumber migrations for release v1.2"
 ```
 
@@ -120,10 +128,10 @@ Why on a release branch, not on main:
 Production runs:
 
 ```bash
-goose -dir sql/schema up
+./chirpy migrate up
 ```
 
-No `--allow-missing` needed — the release branch has clean sequential numbering. Migrations apply in order. If something fails, `goose down` rolls back the last migration.
+No `--allow-missing` needed — the release branch has clean sequential numbering. Migrations apply in order. The binary has migrations embedded, so no goose CLI or raw SQL files are needed on the target machine.
 
 ### Post-release
 
@@ -140,60 +148,31 @@ Feature branches rebase onto the updated main. Any timestamped migrations on tho
 
 ## Schema snapshot verification (optional)
 
-For extra safety, you can commit a `schema.sql` snapshot and verify it in CI:
+For extra safety, you can commit a schema snapshot and verify it in CI:
 
 ```bash
-# dump the schema after running all migrations against a fresh database
 pg_dump --schema-only --no-owner --no-privileges chirpy_test > schema.snapshot.sql
-
-# diff against the committed snapshot
-diff schema.snapshot.sql sql/schema.sql
 ```
 
-If the diff is non-empty, someone changed a migration without updating the snapshot, or two migrations produced an unexpected combined result.
+If the diff against the committed snapshot is non-empty, someone changed a migration without updating the snapshot, or two migrations produced an unexpected combined result.
 
 This is overkill for a solo project or small team, but valuable when:
 - Multiple developers are creating migrations weekly
 - You want to catch accidental migration edits
 - You need a single file that shows the current schema at a glance
 
-### Makefile target
-
-```makefile
-sql-snapshot:
-	pg_dump --schema-only --no-owner --no-privileges chirpy_test > sql/schema.snapshot.sql
-
-sql-verify-snapshot:
-	@echo "Running migrations against fresh database..."
-	# (requires a test database — integrate with testcontainers or a CI Postgres)
-	@diff sql/schema.snapshot.sql <(pg_dump --schema-only --no-owner --no-privileges chirpy_test) \
-		&& echo "Schema snapshot is current" \
-		|| (echo "Schema snapshot is stale — run 'make sql-snapshot'" && exit 1)
-```
-
 
 ## Summary of conventions
 
 | Rule | Where | Why |
 |------|-------|-----|
-| Use `goose create` for new migrations | Feature branch | Timestamps prevent version collisions |
+| Use `make sql-create` for new migrations | Feature branch | Timestamps prevent version collisions |
 | Never edit an applied migration | Everywhere | Goose won't re-run it; schema silently drifts |
 | `--allow-missing` for incremental apply | Staging | Handles out-of-order timestamps from concurrent merges |
-| `goose fix` on release branch only | Release branch | Clean sequential numbering without disrupting feature branches |
-| `goose up` (no flags) for production | Production | Sequential order, clean, auditable |
+| `make sql-fix` on release branch only | Release branch | Clean sequential numbering without disrupting feature branches |
+| `./chirpy migrate up` for deployment | Staging, production | Self-contained binary, no external tools needed |
 | Merge release branch back to main | Post-release | Main reflects the renumbered files going forward |
 | Commit a schema snapshot | Optional, CI | Catches drift and accidental edits |
-
-### Makefile targets
-
-```makefile
-sql-create:
-	@read -p "Migration name: " name; \
-	goose -dir sql/schema create $$name sql
-
-sql-fix:
-	goose -dir sql/schema fix
-```
 
 
 ## Reference

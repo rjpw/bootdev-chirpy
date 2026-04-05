@@ -191,9 +191,7 @@ Check migration status:
 
     ./chirpy migrate status
 
-For development, you can also use the goose CLI directly:
-
-    goose -dir sql/schema postgres "$DATABASE_URL" up
+For development, you can also use the goose CLI directly via `make sql-migrate`.
 ```
 
 Update the release notes template in [devops/03-release-process.md](devops/03-release-process.md) to reference the subcommand:

@@ -38,7 +38,7 @@ Plain `.sql` files with `-- +goose Up` and `-- +goose Down` sections.
 Ops teams like self-contained binaries. `./chirpy migrate up` with no external tools is appealing. But you get that benefit without Go migrations:
 
 ```go
-//go:embed sql/schema/*.sql
+//go:embed migrations/*.sql
 var migrations embed.FS
 
 func runMigrations(db *sql.DB) error {

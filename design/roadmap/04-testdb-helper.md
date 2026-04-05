@@ -36,11 +36,12 @@ You already have `github.com/lib/pq` in your `go.mod` — that's the database dr
 
 ## Step 2: Creating migrations with goose
 
-Your migrations live in `sql/schema/`. When you need a new migration, always use `goose create` rather than creating the file by hand:
+Your migrations live in `internal/schema/migrations/`. When you need a new migration, always use `goose create` rather than creating the file by hand:
 
 ```bash
-goose -dir sql/schema create add_users sql
-# creates sql/schema/20260404120000_add_users.sql
+make sql-create
+# or: goose create add_users sql
+# creates internal/schema/migrations/20260404120000_add_users.sql
 ```
 
 This generates a timestamped filename. Timestamps matter when multiple developers are creating migrations concurrently — two developers will never collide on a version number. If you name files manually with sequential numbers (`000001_`, `000002_`), concurrent branches will conflict.
@@ -52,21 +53,21 @@ Before a release, `goose fix` renumbers timestamps into clean sequential order. 
 
 ## Step 3: Understand embed.FS
 
-Your migrations live in `sql/schema/`. Tests run from the package directory (e.g., `internal/testdb/`), so a relative path like `../../sql/schema` is fragile and won't work if you run tests from the project root.
+Your migrations live in `internal/schema/migrations/`. Tests run from the package directory (e.g., `internal/testdb/`), so a relative path like `../../internal/schema/migrations` is fragile and won't work if you run tests from the project root.
 
 Go's `embed` package solves this. You declare a variable with a `//go:embed` directive, and the compiler bakes the files into the binary at build time.
 
-The catch: `//go:embed` can only embed files relative to the file containing the directive, and it cannot use `..` to go up directories. So you can't embed `../../sql/schema` from `internal/testdb/`.
+The catch: `//go:embed` can only embed files relative to the file containing the directive, and it cannot use `..` to go up directories. So you can't embed `../../internal/schema/migrations` from `internal/testdb/`.
 
 There are two clean solutions:
 
-**Option A: Embed at the project root and pass it in.** Create a file at the project root (or in `sql/`) that embeds the schema directory, then have your test helper accept an `fs.FS` parameter.
+**Option A: Embed at the project root and pass it in.** Create a file at the project root that embeds the migration directory, then have your test helper accept an `fs.FS` parameter.
 
 **Option B: Embed in a dedicated package.** Create a small package like `internal/schema/` whose only job is to embed and export the migration files.
 
 Option B is cleaner because it keeps the embed declaration close to the files and any test package can import it without passing things around.
 
-Here's the shape:
+Since the migrations already live in `internal/schema/migrations/`, the embed declaration lives right next to them:
 
 ```go
 // internal/schema/schema.go
@@ -78,11 +79,7 @@ import "embed"
 var Migrations embed.FS
 ```
 
-But wait — the SQL files live in `sql/schema/`, not `internal/schema/migrations/`. You have a choice: move the files, or symlink, or adjust the embed path. The simplest approach is to keep the files where they are and create the embed package in a location that can reach them.
-
-Think about where to put the embed declaration so that the `//go:embed` path can reach `sql/schema/*.sql`. Remember: the path is relative to the Go source file.
-
-> **Hint:** A file at the project root can embed `sql/schema/*.sql`. A file in `sql/` can embed `schema/*.sql`. Either works. The embed package just needs to be importable.
+The `//go:embed` path is relative to the file, so `migrations/*.sql` resolves to `internal/schema/migrations/*.sql` — exactly where the files are. No symlinks, no path gymnastics.
 
 > **Go idiom: embed.FS.** The embedded filesystem implements `fs.FS`, which is the standard interface for read-only file trees. Both `goose.NewProvider` and `os.DirFS` work with `fs.FS`. The difference is that `embed.FS` is baked into the binary — no filesystem access needed at runtime.
 
@@ -103,10 +100,10 @@ provider, err := goose.NewProvider(
 results, err := provider.Up(ctx)
 ```
 
-One subtlety: if your `embed.FS` embeds files under a subdirectory (e.g., `//go:embed sql/schema/*.sql` produces paths like `sql/schema/001_users.sql`), you need to use `fs.Sub` to strip the prefix before passing it to goose. Goose expects the `.sql` files to be at the root of the `fs.FS`.
+One subtlety: if your `embed.FS` embeds files under a subdirectory (e.g., `//go:embed migrations/*.sql` produces paths like `migrations/001_users.sql`), you need to use `fs.Sub` to strip the prefix before passing it to goose. Goose expects the `.sql` files to be at the root of the `fs.FS`.
 
 ```go
-subFS, err := fs.Sub(rawFS, "sql/schema")
+subFS, err := fs.Sub(rawFS, "migrations")
 ```
 
 > **Go idiom: fs.Sub.** This is a standard library function that returns a new `fs.FS` rooted at a subdirectory. It's the `fs.FS` equivalent of `cd`-ing into a directory.

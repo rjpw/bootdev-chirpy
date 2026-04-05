@@ -86,10 +86,10 @@ Also add migration targets if you haven't already:
 ```makefile
 sql-create:
 	@read -p "Migration name: " name; \
-	goose -dir sql/schema create $$name sql
+	goose create $$name sql
 
 sql-fix:
-	goose -dir sql/schema fix
+	goose fix
 ```
 
 `sql-create` prompts for a name and generates a timestamped migration file. `sql-fix` renumbers timestamps into sequential order before a release. See [devops/02-migration-discipline.md](devops/02-migration-discipline.md) for when to use each.

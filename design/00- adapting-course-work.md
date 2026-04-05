@@ -75,7 +75,7 @@ As the course adds new endpoints, write them against `cfg.Users` instead of `cfg
 Your `001_users.sql` is already applied and works. Don't rename it. For all future migrations, use `goose create`:
 
 ```bash
-goose -dir sql/schema create add_chirps sql
+make sql-create
 ```
 
 This generates a timestamped file. Goose handles mixed sequential + timestamp ordering. See `design/roadmap/devops/02-migration-discipline.md` for the full convention.

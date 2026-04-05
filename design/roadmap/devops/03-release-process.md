@@ -39,17 +39,18 @@ This release adds 2 new migrations (00003, 00004).
 
 **Upgrade:**
 
-    goose -dir sql/schema up
+    export DB_URL="postgres://..."
+    ./chirpy migrate up
 
 **Rollback (if needed):**
 
-    goose -dir sql/schema down-to 00002
+    goose -dir internal/schema/migrations down-to 00002
 
 ### Upgrade instructions
 
-1. Apply migrations to staging: `goose -dir sql/schema up`
+1. Apply migrations to staging: `./chirpy migrate up`
 2. Smoke test staging
-3. Apply migrations to production: `goose -dir sql/schema up`
+3. Apply migrations to production: `./chirpy migrate up`
 4. Deploy the new application version
 
 ### Breaking changes
@@ -94,21 +95,23 @@ This gives the customer a safe upgrade path and a rollback path at each step. Do
 A cautious customer upgrading from v1.1.0 to v1.2.0:
 
 1. Read the release notes — check for migration changes and breaking changes
-2. `git checkout v1.2.0`
-3. `goose -dir sql/schema up` against staging
+2. `git checkout v1.2.0` and `make build`
+3. `./chirpy migrate up` against staging
 4. Deploy the new binary to staging, smoke test
-5. `goose -dir sql/schema up` against production
+5. `./chirpy migrate up` against production
 6. Deploy the new binary to production
 
+Customers use `./chirpy migrate` — the binary has migrations embedded, so no goose CLI or raw SQL files are needed on the target machine.
+
 If staging fails:
-- `goose -dir sql/schema down-to <previous>` to roll back the migration
+- Roll back with goose CLI: `goose -dir internal/schema/migrations down-to <previous>`
 - Report the issue — production is untouched
 
 If production fails after migration:
 - If migrations are backward-compatible: roll back the app to v1.1.0, investigate
-- If not: `goose down-to <previous>` and roll back the app
+- If not: roll back the migration and the app
 
-Skipping versions (v1.0.0 → v1.2.0) works — goose applies all unapplied migrations in order. But the customer should read release notes for all skipped versions to understand cumulative changes.
+Skipping versions (v1.0.0 → v1.2.0) works — migrations are applied in order. But the customer should read release notes for all skipped versions to understand cumulative changes.
 
 
 ## Versioning convention

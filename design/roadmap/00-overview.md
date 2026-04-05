@@ -53,7 +53,7 @@ The top layer is what you already have: HTTP-level tests using `httptest` that d
 └──────────────────────────────────────────────────────┘
 
   testcontainers-go  →  spins up Postgres in Docker for tests
-  goose              →  applies your sql/schema/*.sql migrations
+  goose              →  applies your internal/schema/migrations/*.sql migrations
   sqlc               →  generates Go code from sql/queries/*.sql
 ```
 
