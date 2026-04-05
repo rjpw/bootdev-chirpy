@@ -9,6 +9,10 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/store"
 )
 
+// Compile-time check to ensure that *Store implements the store.UserStore interface.
+// This will cause a compilation error if Store does not satisfy all methods of UserStore.
+var _ store.UserStore = (*Store)(nil)
+
 func (s *Store) CreateUser(ctx context.Context, email string) (*store.User, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	user, err := s.db.CreateUser(ctx, database.CreateUserParams{

@@ -13,8 +13,6 @@ type Store struct {
 	db *database.Queries
 }
 
-var _ store.UserStore = (*Store)(nil) // ensure Store implements the UserStore interface
-
 func NewPostgresStore(db *database.Queries) *Store {
 	return &Store{db: db}
 }
