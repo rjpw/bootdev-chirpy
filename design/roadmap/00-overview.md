@@ -72,6 +72,7 @@ Each layer only knows about the one directly below it. sqlc and goose are implem
 | [06-postgres-store](06-postgres-store.md) | `internal/store/postgres/` | Snapshot/restore, error mapping, composition |
 | [07-developer-workflow](07-developer-workflow.md) | Build tags, makefile targets, README | `//go:build`, test organization |
 | [08-migrate-subcommand](08-migrate-subcommand.md) | `./chirpy migrate up` — self-contained binary | `os.Args`, goose provider, `fs.Sub` |
+| [09-scaling-the-store-layer](09-scaling-the-store-layer.md) | Patterns for adding entities without busy work | Interface-per-entity, file conventions, checklist |
 
 Work through them in order. Each doc builds on the previous one.
 
