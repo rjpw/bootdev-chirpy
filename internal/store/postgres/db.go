@@ -7,11 +7,13 @@ import (
 )
 
 func Open(url string) (*sql.DB, error) {
+	// note: pg driver is imported by main in cmd/chirpy/main.go
+	// and testdb in internal/testdb/testdb.go, so we don't need to import it here
 	return sql.Open("postgres", url)
 }
 
 func NewPostgresStoreFromURL(dbURL string) (*Store, *sql.DB, error) {
-	db, err := sql.Open("postgres", dbURL) // note: pg driver is imported in cmd/chirpy/main.go
+	db, err := Open(dbURL)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -15,7 +15,7 @@ import (
 func setupTx(t *testing.T) *database.Queries {
 	t.Helper()
 	db := testdb.Setup(t)
-	tx, err := db.BeginTx(context.Background(), nil)
+	tx, err := db.DB.BeginTx(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("begin tx: %v", err)
 	}

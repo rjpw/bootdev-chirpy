@@ -6,13 +6,13 @@ func TestSetup(t *testing.T) {
 	db := Setup(t)
 
 	// Can we reach the database?
-	if err := db.Ping(); err != nil {
+	if err := db.DB.Ping(); err != nil {
 		t.Fatalf("ping: %v", err)
 	}
 
 	// Did migrations run?
 	var tableName string
-	err := db.QueryRow(
+	err := db.DB.QueryRow(
 		"SELECT table_name FROM information_schema.tables WHERE table_name = $1",
 		"users",
 	).Scan(&tableName)

@@ -13,17 +13,26 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
+type EphemeralDB struct {
+	DB        *sql.DB
+	Container *postgres.PostgresContainer
+}
+
 var (
-	once     sync.Once
-	setupErr error
-	testDB   *sql.DB
+	once              sync.Once
+	setupErr          error
+	connStr           string
+	testDB            *sql.DB
+	postgresContainer *postgres.PostgresContainer
 )
 
-func Setup(t *testing.T) *sql.DB {
+func Setup(t *testing.T) EphemeralDB {
 	t.Helper()
 	once.Do(func() {
 		ctx := context.Background()
-		postgresContainer, err := postgres.Run(ctx,
+
+		var err error
+		postgresContainer, err = postgres.Run(ctx,
 			"postgres:17.2-alpine3.21",
 			postgres.WithDatabase("test"),
 			postgres.WithUsername("user"),
@@ -36,7 +45,7 @@ func Setup(t *testing.T) *sql.DB {
 		}
 
 		// Get the connection string for the database.
-		connStr, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
+		connStr, err = postgresContainer.ConnectionString(ctx, "sslmode=disable")
 		if err != nil {
 			setupErr = err
 			return
@@ -55,12 +64,14 @@ func Setup(t *testing.T) *sql.DB {
 			return
 		}
 
+		// define a subdirectory for the migrations to avoid including non-migration files in the root of the schema package
 		migrationsFS, err := fs.Sub(schema.Migrations, "migrations")
 		if err != nil {
 			setupErr = err
 			return
 		}
 
+		// Create a new goose provider using the embedded migrations.
 		provider, err := goose.NewProvider(
 			goose.DialectPostgres,
 			testDB,
@@ -71,17 +82,37 @@ func Setup(t *testing.T) *sql.DB {
 			return
 		}
 
+		// Apply all up migrations.
 		results, err := provider.Up(ctx)
 		if err != nil {
 			setupErr = err
 			return
 		}
 		t.Logf("Migrations applied: %v", results)
+
+		// close the connection before snapshot
+		testDB.Close()
+
+		// Snapshot the container to speed up future test runs.
+		if err := postgresContainer.Snapshot(ctx); err != nil {
+			setupErr = err
+			return
+		}
+
+		// reopen after snapshot
+		testDB, err = sql.Open("postgres", connStr)
+		if err != nil {
+			setupErr = err
+			return
+		}
 	})
 
 	if setupErr != nil {
 		t.Fatalf("Failed to set up test database: %v", setupErr)
 	}
 
-	return testDB
+	return EphemeralDB{
+		DB:        testDB,
+		Container: postgresContainer,
+	}
 }

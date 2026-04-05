@@ -13,6 +13,15 @@ import (
 // This will cause a compilation error if Store does not satisfy all methods of UserStore.
 var _ store.UserStore = (*Store)(nil)
 
+func toStoreUser(dbUser database.User) *store.User {
+	return &store.User{
+		ID:        dbUser.ID,
+		Email:     dbUser.Email,
+		CreatedAt: dbUser.CreatedAt,
+		UpdatedAt: dbUser.UpdatedAt,
+	}
+}
+
 func (s *Store) CreateUser(ctx context.Context, email string) (*store.User, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	user, err := s.db.CreateUser(ctx, database.CreateUserParams{
@@ -24,12 +33,7 @@ func (s *Store) CreateUser(ctx context.Context, email string) (*store.User, erro
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &store.User{
-		ID:        user.ID,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}, nil
+	return toStoreUser(user), nil
 }
 
 func (s *Store) GetUserByEmail(ctx context.Context, email string) (*store.User, error) {
@@ -37,12 +41,7 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*store.User, 
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &store.User{
-		ID:        user.ID,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}, nil
+	return toStoreUser(user), nil
 }
 
 func (s *Store) GetUserByID(ctx context.Context, id string) (*store.User, error) {
@@ -54,12 +53,7 @@ func (s *Store) GetUserByID(ctx context.Context, id string) (*store.User, error)
 	if err != nil {
 		return nil, mapError(err)
 	}
-	return &store.User{
-		ID:        user.ID,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}, nil
+	return toStoreUser(user), nil
 }
 
 func (s *Store) DeleteUser(ctx context.Context, email string) error {
