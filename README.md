@@ -8,36 +8,50 @@ This is early days. I won't be pushing commits for every lesson, just when I hav
 
 ## Quickstart for Developers
 
-I use Air while working on features. This provides hot reload of the back end, and saves you from having to stop and start the server all the time.
+### Prerequisites
 
-I'm also using `make` to orchestrate static analysis and testing, with [golangci-lint](https://golangci-lint.run/) to keep me honest.
-
+- Go 1.26+ (`go version`)
+- Docker running (`docker info`)
+- [golangci-lint](https://golangci-lint.run/) (optional but recommended)
+- [Air](https://github.com/air-verse/air) for hot reload (optional)
 
 ```bash
-# install golangci-lint (optional but a good idea)
+# install golangci-lint
 curl -sSfL https://golangci-lint.run/install.sh | \
   sh -s -- -b $(go env GOPATH)/bin v2.11.4
 
-# configure air (with any changes you see fit to make)
-cp .air-example.toml .air.toml
+# install goose and sqlc
+go install github.com/pressly/goose/v3/cmd/goose@latest
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
-# run in development mode
-make run
-
-# in another terminal, check health endpoint
-curl localhost:8080/api/healthz
+# install dependencies
+go mod tidy
 ```
+
+### Environment
+
+Copy the example environment file and adjust as needed:
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DB_URL` | Postgres connection string | `postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable` |
+| `PLATFORM` | `dev` or `production` | `dev` |
 
 ### Database
 
-Run a PostgreSQL server in docker:
+Run a PostgreSQL server in Docker:
 
 ```bash
-# heredoc to create the docker compose file
 cat << 'eof' > docker-compose.yaml
 services:
   postgres:
-    image: postgres:16
+    image: postgres:17.2-alpine3.21
     environment:
       POSTGRES_PASSWORD: postgres
     ports:
@@ -49,41 +63,55 @@ volumes:
   pgdata:
 eof
 
-# launch the postgres server
 docker compose up -d
 ```
 
-Create your `chirpy` database:
+Create the database and apply migrations:
 
 ```bash
-# provide password by environment variable
 export PGPASSWORD=postgres
+psql "postgres://postgres:@localhost:5432" -c "CREATE DATABASE chirpy;"
 
-# access the Postgres shell in your container
-psql "postgres://postgres:@localhost:5432"
-
-# at prompt `postgres=#`
-CREATE DATABASE chirpy;
-
-# connect to gator
-\c chirpy
-
-# at prompt `chirpy=#`
-ALTER USER postgres PASSWORD 'postgres';
-
-# back in bash, install dependencies
-go install github.com/pressly/goose/v3/cmd/goose@latest
-go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-
-go get github.com/google/uuid
-go get github.com/lib/pq
-go get github.com/joho/godotenv
-go mod tidy
-
-# bring up the database schema
 make sql-migrate
-
-# optionally (re)generate the go database code
-make sql-generate
 ```
 
+### Running
+
+```bash
+# configure air (with any changes you see fit to make)
+cp .air-example.toml .air.toml
+
+# run in development mode
+make run
+
+# in another terminal, check health endpoint
+curl localhost:8080/api/healthz
+```
+
+## Testing
+
+Fast tests (no Docker required):
+
+```bash
+make test
+```
+
+Integration tests run automatically against a testcontainers-managed Postgres instance — no manual database setup needed.
+
+## Makefile Targets
+
+| Target | Description |
+|--------|-------------|
+| `make run` | Start with hot reload (air) |
+| `make build` | Compile to `tmp/main` |
+| `make test` | Run all tests with race detector |
+| `make lint` | Run golangci-lint |
+| `make format` | Auto-format with golangci-lint |
+| `make sql-status` | Show migration status |
+| `make sql-migrate` | Apply pending migrations |
+| `make sql-migrate-down` | Roll back last migration |
+| `make sql-generate` | Regenerate sqlc code |
+
+## Architecture
+
+See `design/` for roadmap docs, design decisions, and FAQs about the project's interface-driven architecture.
