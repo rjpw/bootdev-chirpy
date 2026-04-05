@@ -132,7 +132,9 @@ Integration tests are gated behind a `//go:build integration` tag. `make test` s
 
 ## Migrations
 
-Apply migrations using the built-in subcommand (no goose CLI required):
+In deployed environments, you won't typically have access to the source code or the `goose` command. The build process embeds the migrations within the `chirpy` binary. Note that starting `chirpy` without the migrate subcommand launches the web service.
+
+To apply these migrations, use the built-in subcommand (no goose CLI required):
 
 ```bash
 export DB_URL="postgres://user:pass@host:5432/chirpy?sslmode=disable"
