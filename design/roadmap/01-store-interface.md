@@ -11,7 +11,7 @@ No implementation yet. Just the contract.
 
 ## Why not just use sqlc's types directly?
 
-You explored this in `design/02-design-faq.md`, but it's worth restating in the context of testing:
+You explored this in `design/design-faq.md`, but it's worth restating in the context of testing:
 
 sqlc generates types shaped by your SQL, not by your application's needs. The generated `CreateUserParams` struct has fields for `ID`, `CreatedAt`, and `UpdatedAt` — but should a handler really be responsible for generating UUIDs and timestamps? That's a persistence concern.
 
@@ -142,7 +142,7 @@ That's it. No implementation. The `memory/` directory that already exists is emp
    ```
    The `%w` verb wraps the error so `errors.Is` can find it through the chain. This is how your store will return errors — wrapped with context but still matchable.
 
-4. **Read the design docs again.** Now that you've defined the interface, re-read `design/02-design-faq.md` and `design/01-design-basics.md`. The mental model described there should feel concrete now. You've built the middle layer of the diagram.
+4. **Read the design docs again.** Now that you've defined the interface, re-read `design/design-faq.md` and `design/design-basics.md`. The mental model described there should feel concrete now. You've built the middle layer of the diagram.
 
 
 ## Reference

@@ -1,6 +1,6 @@
 # Scaling the Store Layer
 
-Reference card for the mechanical patterns used when adding entities. For the development workflow and testing philosophy, see [design/04-feature-development-loop.md](../../design/04-feature-development-loop.md).
+Reference card for the mechanical patterns used when adding entities. For the development workflow and testing philosophy, see [design/feature-development-loop.md](../../design/feature-development-loop.md).
 
 
 ## Touch points for a new entity
@@ -16,7 +16,7 @@ Reference card for the mechanical patterns used when adding entities. For the de
 | Config + wiring | `internal/config/config.go`, `cmd/chirpy/main.go`, `server_test.go` | Add to `Stores`, wire |
 | Integration tests | `internal/store/postgres/<entity>_test.go` | Only for non-trivial translation |
 
-Order matters — work top to bottom. See [design/04-feature-development-loop.md](../../design/04-feature-development-loop.md) for why.
+Order matters — work top to bottom. See [design/feature-development-loop.md](../../design/feature-development-loop.md) for why.
 
 
 ## One interface per entity

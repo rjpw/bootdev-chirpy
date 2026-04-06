@@ -73,6 +73,8 @@ Each layer only knows about the one directly below it. sqlc and goose are implem
 | [07-developer-workflow](07-developer-workflow.md) | Build tags, makefile targets, README | `//go:build`, test organization |
 | [08-migrate-subcommand](08-migrate-subcommand.md) | `./chirpy migrate up` — self-contained binary | `os.Args`, goose provider, `fs.Sub` |
 | [09-scaling-the-store-layer](09-scaling-the-store-layer.md) | Patterns for adding entities without busy work | Interface-per-entity, file conventions, checklist |
+| [10-schema-version-check](10-schema-version-check.md) | Startup gate + healthz for pending migrations | Goose provider status, fail-fast startup |
+| [11-always-on-readiness](11-always-on-readiness.md) | SIGTERM, connection pooling, readiness/liveness probes | `syscall.SIGTERM`, `sql.DB` pool config, K8s health checks |
 
 Work through them in order. Each doc builds on the previous one.
 
@@ -86,7 +88,7 @@ Before starting:
 - [ ] Docker is running (`docker info` should succeed)
 - [ ] Your existing tests pass (`go test -race ./...`)
 - [ ] Postgres container is not required to be running — testcontainers will manage its own
-- [ ] You've read through `design/02-design-faq.md` and `design/01-design-basics.md`
+- [ ] You've read through `design/design-faq.md` and `design/design-basics.md`
 - [ ] You're comfortable with `go test`, `go build`, and your existing makefile targets
 
 
