@@ -20,7 +20,7 @@ Start from what users need, not from what the database looks like. Define behavi
 
 Every endpoint is a promise. The request shape, the response shape, the status codes, the error format — these are contracts with every client that consumes them. Once shipped, changing them is a negotiation, not a refactor.
 
-Design response shapes deliberately. Document error responses in tests. Decide pagination style before you ship the first list endpoint. Know the difference between additive changes (safe) and breaking changes (require a new version). Treat your API with the same care you'd treat a legal agreement, because to your customers, it is one.
+Design response shapes deliberately. Document error responses in tests. Decide pagination style before you ship the first list endpoint. Know the difference between additive changes (safe) and breaking changes (require a new version). Treat your API with the same care you'd treat a legal agreement, because to your customers, it is one ( and then some ... see [Hyrum's Law](https://www.hyrumslaw.com/) ).
 
 *See: [api-lifecycle.md](api-lifecycle.md), [design-governance.md](design-governance.md)*
 
