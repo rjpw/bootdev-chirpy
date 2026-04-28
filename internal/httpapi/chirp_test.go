@@ -1,4 +1,4 @@
-package httpapi
+package httpapi_test
 
 import (
 	"embed"
@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 )
 
 // Define and initialize testdataFS
@@ -28,7 +30,7 @@ func TestValidateChirpAPI(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			params := parameters{Body: tc.body}
+			params := httpapi.Parameters{Body: tc.body}
 			payload, err := json.Marshal(params)
 			if err != nil {
 				t.Fatalf("json.Marshal(params) error: %v", err)

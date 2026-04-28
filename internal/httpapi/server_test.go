@@ -1,4 +1,4 @@
-package httpapi
+package httpapi_test
 
 import (
 	"regexp"
@@ -6,17 +6,18 @@ import (
 	"testing"
 
 	"github.com/rjpw/bootdev-chirpy/internal/config"
+	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 	"github.com/rjpw/bootdev-chirpy/internal/memory"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
 )
 
-func newTestServer(platform string) *Server {
+func newTestServer(platform string) *httpapi.Server {
 	cfg := &config.Config{
 		Platform: platform,
 		Metrics:  &metrics.ServerMetrics{},
 		Users:    memory.NewMemoryRepository(),
 	}
-	return NewServer(cfg, "./testdata")
+	return httpapi.NewServer(cfg, "./testdata")
 }
 
 func parseHitCount(t *testing.T, body string) int {

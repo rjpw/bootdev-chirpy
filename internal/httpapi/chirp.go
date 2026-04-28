@@ -7,7 +7,7 @@ import (
 )
 
 // struct to receive a JSON api `chirp`
-type parameters struct {
+type Parameters struct {
 	Body string `json:"body"`
 }
 
@@ -16,7 +16,7 @@ type jsonSuccess struct {
 	Valid       bool   `json:"valid"`
 }
 
-func (p *parameters) Validate() bool {
+func (p *Parameters) Validate() bool {
 	bodyLen := len(p.Body)
 	return bodyLen > 0 && bodyLen <= 140
 }
@@ -25,7 +25,7 @@ func (s *Server) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	decoder := json.NewDecoder(r.Body)
-	var decoded parameters
+	var decoded Parameters
 	if err := decoder.Decode(&decoded); err != nil {
 		s.respondWithJSON(w, http.StatusBadRequest, jsonError{Error: err.Error()})
 		return

@@ -1,10 +1,34 @@
-package httpapi
+package httpapi_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
+
+func hitFileserver(t *testing.T, srv http.Handler) {
+	t.Helper()
+	r := httptest.NewRequest("GET", "/app/hello.txt", nil)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Fatalf("fileserver hit failed: got %d", w.Code)
+	}
+}
+
+func getHitCount(t *testing.T, srv http.Handler) int {
+	t.Helper()
+	r := httptest.NewRequest("GET", "/admin/metrics", nil)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("want 200, got %d", w.Code)
+	}
+
+	return parseHitCount(t, w.Body.String())
+
+}
 
 func TestMetricsInitiallyZero(t *testing.T) {
 	srv := newTestServer("dev")
@@ -47,17 +71,10 @@ func TestMetricsReflectHits(t *testing.T) {
 		}
 	}
 
-	r := httptest.NewRequest("GET", "/admin/metrics", nil)
-	w := httptest.NewRecorder()
-	srv.ServeHTTP(w, r)
+	actualHitCount := getHitCount(t, srv)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("want 200, got %d", w.Code)
-	}
-
-	hitCount := parseHitCount(t, w.Body.String())
-	if hitCount != len(cases) {
-		t.Errorf("want %d hits, got %d", len(cases), hitCount)
+	if actualHitCount != len(cases) {
+		t.Errorf("want %d hits, got %d", len(cases), actualHitCount)
 	}
 }
 
@@ -71,7 +88,10 @@ func TestResetClearsHits(t *testing.T) {
 	if w.Body.String() != "Hello world!" {
 		t.Errorf("want 'Hello world!', got %q", w.Body.String())
 	}
-	if srv.cfg.Metrics.FileserverHits() != 1 {
+
+	actualHitCount := getHitCount(t, srv)
+
+	if actualHitCount != 1 {
 		t.Fatalf("expected 1 hit after routed call")
 	}
 
@@ -79,7 +99,9 @@ func TestResetClearsHits(t *testing.T) {
 	w = httptest.NewRecorder()
 	srv.ServeHTTP(w, r)
 
-	if srv.cfg.Metrics.FileserverHits() != 0 {
-		t.Errorf("expected 0 hits after reset, got %d", srv.cfg.Metrics.FileserverHits())
+	actualHitCount = getHitCount(t, srv)
+
+	if actualHitCount != 0 {
+		t.Errorf("expected 0 hits after reset, got %d", actualHitCount)
 	}
 }

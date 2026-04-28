@@ -11,16 +11,16 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/memory"
 )
 
-func newStore() domain.UserRepository {
+func newMemoryRepo() domain.UserRepository {
 	return memory.NewMemoryRepository()
 }
 
 func TestCreateUser(t *testing.T) {
-	s := newStore()
+	repo := newMemoryRepo()
 
 	ctx := context.Background()
 	email := "test@example.com"
-	user, err := s.CreateUser(ctx, email)
+	user, err := repo.CreateUser(ctx, email)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
@@ -44,33 +44,33 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserConflict(t *testing.T) {
-	s := newStore()
+	repo := newMemoryRepo()
 
 	ctx := context.Background()
 	email := "test@example.com"
-	_, err := s.CreateUser(ctx, email)
+	_, err := repo.CreateUser(ctx, email)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
 	// try to create another user with the same email,
 	// should get conflict error
-	_, err = s.CreateUser(ctx, email)
+	_, err = repo.CreateUser(ctx, email)
 	if !errors.Is(err, domain.ErrConflict) {
 		t.Fatalf("Expected ErrConflict when creating user with duplicate email, got: %v", err)
 	}
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	s := newStore()
+	repo := newMemoryRepo()
 
 	ctx := context.Background()
 	email := "test@example.com"
 
-	_, err := s.CreateUser(ctx, email)
+	_, err := repo.CreateUser(ctx, email)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
-	user, err := s.GetUserByEmail(ctx, email)
+	user, err := repo.GetUserByEmail(ctx, email)
 	if err != nil {
 		t.Fatalf("Failed to get user by email: %v", err)
 	}
@@ -80,11 +80,11 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestGetUserByEmailNotFound(t *testing.T) {
-	s := newStore()
+	repo := newMemoryRepo()
 
 	ctx := context.Background()
 	email := "nonexistent@example.com"
-	_, err := s.GetUserByEmail(ctx, email)
+	_, err := repo.GetUserByEmail(ctx, email)
 	if !errors.Is(err, domain.ErrNotFound) {
 		t.Fatalf("Expected ErrNotFound when getting user by email, got: %v", err)
 	}
