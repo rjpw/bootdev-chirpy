@@ -1,8 +1,8 @@
 version: "2"
 sql:
-  - schema: "internal/schema/migrations"
-    queries: "internal/schema/queries"
+  - schema: "internal/postgres/schema/migrations"
+    queries: "internal/postgres/schema/queries"
     engine: "postgresql"
     gen:
       go:
-        out: "internal/database"
+        out: "internal/postgres/database"

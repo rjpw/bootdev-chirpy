@@ -1,17 +1,17 @@
 package config
 
 import (
+	"github.com/rjpw/bootdev-chirpy/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
-	"github.com/rjpw/bootdev-chirpy/internal/store"
 )
 
 type Config struct {
 	Platform string
 	Metrics  *metrics.ServerMetrics
-	Users    store.UserStore
+	Users    domain.UserRepository
 }
 
-func NewConfig(platform string, metrics *metrics.ServerMetrics, users store.UserStore) *Config {
+func NewConfig(platform string, metrics *metrics.ServerMetrics, users domain.UserRepository) *Config {
 	return &Config{
 		Platform: platform,
 		Metrics:  metrics,

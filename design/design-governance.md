@@ -105,6 +105,45 @@ This mismatch is not a problem to solve. It's a tension to manage, feature by fe
 The impulse should always lean toward the domain. The domain is the reason the software exists. The system is how it survives.
 
 
+## When a domain type serves two masters
+
+The impedance mismatch above is between the domain and the database. There's a second mismatch that's harder to see: within the domain itself.
+
+A `User` starts simple — an ID, an email, a creation timestamp. Then auth adds a password hash and token state. Then a social feature adds a display name and bio. Then billing adds a subscription tier and payment method. The type accumulates fields from different contexts, and every consumer imports the same struct even though each one only cares about a subset.
+
+This is the god entity. It's the data equivalent of a god class, and it creates the same problems: every change risks every consumer, the type becomes hard to reason about, and the test surface grows with every field.
+
+The signal is when different parts of the application want different views of the same identity:
+
+- Auth needs `{ID, Email, PasswordHash, TokenState}`
+- The social API needs `{ID, DisplayName, Bio, FollowerCount}`
+- Billing needs `{ID, Plan, PaymentMethod}`
+
+They share an ID. That's the real relationship — not a shared struct.
+
+The fix is separate types per context, coordinated by the shared identifier. These can live in the same database, even join on `user_id`, and deploy in the same binary. The boundary is in the code:
+
+```go
+// internal/auth/user.go
+type Credentials struct {
+    UserID       uuid.UUID
+    Email        string
+    PasswordHash string
+}
+
+// internal/store/store.go (social context)
+type User struct {
+    ID          uuid.UUID
+    DisplayName string
+    Bio         string
+}
+```
+
+You don't need this split on day one. The signal to split is when a change to the type for one consumer forces you to think about the impact on another. If adding a `PasswordHash` field to `store.User` makes you worry about it appearing in API responses, the type is serving two masters and it's time to separate them.
+
+For Chirpy today, `store.User` serves one context. When auth arrives, watch for the moment it starts serving two.
+
+
 ## Telemetry closes the loop
 
 FRs and NFRs are predictions. You design based on what you think users will do and what you think the system will need. Telemetry tells you whether those predictions were right.
@@ -280,7 +319,7 @@ These questions connect what you build to how it runs. An SLA commitment constra
 
 **Health and failure:**
 - [ ] Does this feature affect readiness? (new startup dependency, new subsystem that must initialize before serving)
-- [ ] Is the new dependency private (this pod's state) or shared (all pods use it)? Private failures can fail readiness; shared failures should not. See [roadmap/11-always-on-readiness.md](roadmap/11-always-on-readiness.md).
+- [ ] Is the new dependency private (this pod's state) or shared (all pods use it)? Private failures can fail readiness; shared failures should not. See [roadmap/12-always-on-readiness.md](roadmap/12-always-on-readiness.md).
 - [ ] If initialization fails, does the process crash or degrade? (Crash is almost always correct — let the orchestrator restart with backoff. A degraded pod that passes liveness but fails readiness is invisible to most monitoring.)
 - [ ] What is the recovery path if this feature fails at runtime? (automatic restart, manual intervention, circuit breaker, fallback)
 

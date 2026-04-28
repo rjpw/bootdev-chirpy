@@ -75,3 +75,126 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 - [x] SQL files embedded in binary via `embed.FS`
 - [x] `./chirpy` (no args) still starts the server
 - [x] README documents the subcommand
+
+
+## Doc 09 — Hexagonal Restructure
+
+### Step 1: Extract `domain/` from `store/` and rename to Repository
+
+- [ ] `internal/domain/user.go` — `User` type, `UserRepository` interface
+- [ ] `internal/domain/errors.go` — `ErrNotFound`, `ErrConflict`
+- [ ] `UserStore` renamed to `UserRepository` throughout
+- [ ] `domain/` has zero imports from `internal/`
+- [ ] All imports updated (`store.User` → `domain.User`, etc.)
+- [ ] `make test` passes
+
+### Step 2: Promote adapters and rename to Repository
+
+- [ ] `internal/memory/` (moved from `store/memory/`), struct renamed to `Repository`
+- [ ] `internal/postgres/` (moved from `store/postgres/`), struct renamed to `Repository`
+- [ ] `internal/store/` directory removed
+- [ ] All imports updated
+- [ ] `make test` passes
+
+### Step 3: Nest Postgres infrastructure
+
+- [ ] `internal/postgres/database/` (moved from `internal/database/`)
+- [ ] `internal/postgres/schema/` (moved from `internal/schema/`)
+- [ ] `internal/postgres/testdb/` (moved from `internal/testdb/`)
+- [ ] `sqlc.yaml` paths updated
+- [ ] `Makefile` paths updated
+- [ ] `make sql-generate` works
+- [ ] `make test` passes
+
+### Step 4: Rename `api/` to `httpapi/`
+
+- [ ] `internal/httpapi/` (renamed from `api/`)
+- [ ] Package declarations and imports updated
+- [ ] `make test` passes
+
+### Step 5: Verify dependency rule
+
+- [ ] `domain/` imports nothing from `internal/`
+- [ ] `postgres/` and `memory/` import only `domain/` (not each other, not `httpapi/`)
+- [ ] `make test-integration` passes
+
+
+## Doc 10 — Scaling the Store Layer
+
+### Structural refactor (before or with second entity)
+
+- [ ] `Repositories` struct in `internal/config/` with named fields per entity
+- [ ] `Config` / `NewConfig` updated to accept `Repositories`
+- [ ] `main.go` wiring updated
+- [ ] `newTestServer` in httpapi tests updated
+
+### Per-entity checklist (repeat for each new entity via feature-development-loop.md)
+
+Fast loop (no Docker):
+
+- [ ] Governance checklist reviewed (endpoint shape, error cases, pagination, cascades)
+- [ ] Domain type + interface in `internal/domain/`
+- [ ] Memory repository implementation with compile-time check
+- [ ] API handler + HTTP tests (red → green)
+- [ ] Refactor: interface minimal, response shape deliberate, service method extracted if needed
+
+Slow loop (Docker, real Postgres):
+
+- [ ] Migration created (`make sql-create`)
+- [ ] Queries in `internal/postgres/schema/queries/<entity>.sql`, then `make sql-generate`
+- [ ] Postgres repository with `toUser`-style mapper and compile-time check
+- [ ] Wired into `Repositories` and `main.go`
+- [ ] Integration tests for relational behavior (cascades, FK violations, compound uniqueness)
+
+
+---
+
+## Milestone: Production Readiness
+
+Docs 11–12 make the server safe for multi-replica, zero-downtime deployment.
+Prerequisite: startup must fail fast if the database is unreachable.
+
+
+## Doc 11 — Schema Version Check
+
+- [ ] Migration checker function with tests
+- [ ] Startup gate in `main.go` (exit if migrations pending)
+- [ ] `/api/healthz` reports schema status
+- [ ] Healthz tests updated
+- [ ] README documents the behavior
+
+
+## Doc 12 — Always-On Readiness
+
+### Step 0: Startup DB ping (fail fast)
+
+- [ ] `postgres.Open` pings the database after `sql.Open`
+- [ ] Unreachable database at startup is a fatal error
+
+### Step 1: SIGTERM and shutdown timeout
+
+- [ ] `runUntilInterrupt` catches `syscall.SIGTERM` alongside `os.Interrupt`
+- [ ] Shutdown uses a timeout context (not `context.Background()`)
+- [ ] Logs which signal was received
+
+### Step 2: Connection pool limits
+
+- [ ] `SetMaxOpenConns` configured
+- [ ] `SetMaxIdleConns` configured
+- [ ] `SetConnMaxLifetime` configured
+
+### Step 3: Readiness and liveness probes
+
+- [ ] `/livez` returns 200 unconditionally (no dependency checks)
+- [ ] Dependency check registry with private/shared classification
+- [ ] `/readyz` returns 503 when a private check fails
+- [ ] `/readyz` reports shared check failures in body without failing the probe
+- [ ] Schema status registered as a private check
+- [ ] Database ping registered as a shared check
+- [ ] Tests for readiness (healthy, private failure, shared failure)
+- [ ] Tests for liveness
+
+### Step 4: Wire and verify
+
+- [ ] Existing `/api/healthz` still works (backward compatibility)
+- [ ] README documents the new health endpoints

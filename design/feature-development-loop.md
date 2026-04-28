@@ -128,8 +128,65 @@ The feature works against the memory store. Now pressure-test the design:
 - Does the domain type have fields the handler doesn't use? Remove them.
 - Does the response shape match what you committed to in the governance checklist?
 - If you identified an NFR (pagination, uniqueness), is it reflected in the interface?
+- Does the handler orchestrate more than one concern? If it calls a store method *and* does something else (hashes a password, issues a token, sends a notification), extract a service method. The handler should delegate to a single call, not coordinate a multi-step workflow. See below.
 
 This is the cheapest moment to change the design. No migration to undo, no sqlc to regenerate, no integration tests to update.
+
+
+### When to extract a service method
+
+A handler that parses a request, calls one store method, and writes a response is fine as-is. No service layer needed.
+
+The signal is when the handler orchestrates across concerns:
+
+```go
+// This handler is doing too much
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+    // parse request
+    // look up user by email        ← store concern
+    // compare password hash         ← auth concern
+    // issue JWT                     ← auth concern
+    // write response
+}
+```
+
+Steps 2–4 are a unit of business logic that doesn't belong in the HTTP layer. Extract it:
+
+```go
+// internal/service/users.go
+func (svc *Service) Login(ctx context.Context, email, password string) (string, error) {
+    user, err := svc.users.GetUserByEmail(ctx, email)
+    if err != nil { return "", err }
+    if err := auth.ComparePassword(user.PasswordHash, password); err != nil {
+        return "", ErrUnauthorized
+    }
+    return auth.IssueToken(user.ID, svc.jwtSecret)
+}
+```
+
+The handler becomes thin again:
+
+```go
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+    // parse request
+    token, err := s.svc.Login(r.Context(), email, password)
+    // map err to status code, write response
+}
+```
+
+The service struct holds the dependencies that cross-concern operations need:
+
+```go
+// internal/service/service.go
+type Service struct {
+    users     store.UserStore
+    jwtSecret string
+}
+```
+
+One `service` package, one struct, methods split by file (`users.go`, `chirps.go`). Don't split into separate service packages until methods have completely disjoint dependencies — for a project this size, that's unlikely.
+
+The rule: if a handler calls two packages to fulfill one request, introduce a service method. If it calls one, leave it alone.
 
 
 ## Step 5: Add the database layer

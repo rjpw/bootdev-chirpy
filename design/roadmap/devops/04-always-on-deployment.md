@@ -145,7 +145,7 @@ In the single-server model, a health check is informational — you look at it i
 
 **Liveness probe:** "Is this pod still functioning?" If it fails, Kubernetes kills and restarts the pod.
 
-The schema version check from [roadmap/10-schema-version-check.md](../10-schema-version-check.md) maps directly to the readiness probe. A pod that starts against a stale schema should fail readiness so the load balancer doesn't send it requests that will fail with SQL errors.
+The schema version check from [roadmap/11-schema-version-check.md](../11-schema-version-check.md) maps directly to the readiness probe. A pod that starts against a stale schema should fail readiness so the load balancer doesn't send it requests that will fail with SQL errors.
 
 ```yaml
 readinessProbe:
@@ -260,7 +260,7 @@ Kubernetes has two signals: readiness (stop routing) and liveness (restart). Thi
 
 ECS, Swarm, and most managed container services have one signal. A failing health check means replacement, not just traffic removal. This makes the shared-dependency cascade problem from [Breck's article](https://blog.colinbreck.com/kubernetes-liveness-and-readiness-probes-how-to-avoid-shooting-yourself-in-the-foot/) worse: if all tasks fail because a shared database is slow, the orchestrator replaces them all simultaneously. New tasks start, the database is still slow, they fail too. You get a replacement storm.
 
-**Implication for the application:** the private/shared dependency classification in `/readyz` (see [roadmap/11-always-on-readiness.md](../11-always-on-readiness.md)) matters even more on one-signal orchestrators. A shared dependency failure that causes the health check to fail will trigger task replacement cascades. On any orchestrator, `/readyz` should only fail on private dependencies — things specific to this instance's state, not shared infrastructure.
+**Implication for the application:** the private/shared dependency classification in `/readyz` (see [roadmap/12-always-on-readiness.md](../12-always-on-readiness.md)) matters even more on one-signal orchestrators. A shared dependency failure that causes the health check to fail will trigger task replacement cascades. On any orchestrator, `/readyz` should only fail on private dependencies — things specific to this instance's state, not shared infrastructure.
 
 The zombie pod problem (a pod that never becomes ready but stays alive) only exists on Kubernetes, because K8s is the only orchestrator that keeps unhealthy containers running. On ECS and Swarm, unhealthy containers are replaced automatically — which is simpler but also means you can't keep a degraded instance alive while investigating.
 

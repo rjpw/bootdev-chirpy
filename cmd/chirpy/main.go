@@ -14,11 +14,11 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"github.com/rjpw/bootdev-chirpy/internal/api"
 	"github.com/rjpw/bootdev-chirpy/internal/config"
+	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
-	"github.com/rjpw/bootdev-chirpy/internal/schema"
-	"github.com/rjpw/bootdev-chirpy/internal/store/postgres"
+	"github.com/rjpw/bootdev-chirpy/internal/postgres"
+	"github.com/rjpw/bootdev-chirpy/internal/postgres/schema"
 )
 
 type AppEnvironment struct {
@@ -38,7 +38,7 @@ func main() {
 		log.Fatalf("Failed to create config: %v", err)
 	}
 
-	store, db, err := postgres.NewPostgresStoreFromURL(env.DBURL)
+	store, db, err := postgres.NewPostgresRepositoryFromURL(env.DBURL)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
@@ -52,7 +52,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
-		Handler:           api.NewServer(cfg, "./root"),
+		Handler:           httpapi.NewServer(cfg, "./root"),
 		ReadHeaderTimeout: time.Millisecond * 30000,
 	}
 
