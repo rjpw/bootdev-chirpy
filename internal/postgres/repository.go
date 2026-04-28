@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/lib/pq"
-	"github.com/rjpw/bootdev-chirpy/domain"
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 )
 

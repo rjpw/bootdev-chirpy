@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/rjpw/bootdev-chirpy/domain"
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
 var _ domain.UserRepository = (*Repository)(nil) // ensure MemoryStore implements the UserStore interface

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rjpw/bootdev-chirpy/domain"
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
 func TestCreateUser(t *testing.T) {

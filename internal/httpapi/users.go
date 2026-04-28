@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/rjpw/bootdev-chirpy/domain"
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
 func (s *Server) CreateUser(ctx context.Context, email string) (*domain.User, error) {

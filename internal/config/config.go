@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/rjpw/bootdev-chirpy/domain"
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/metrics"
 )
 
