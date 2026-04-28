@@ -81,42 +81,42 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 
 ### Step 1: Extract `domain/` from `store/` and rename to Repository
 
-- [ ] `internal/domain/user.go` — `User` type, `UserRepository` interface
-- [ ] `internal/domain/errors.go` — `ErrNotFound`, `ErrConflict`
-- [ ] `UserStore` renamed to `UserRepository` throughout
-- [ ] `domain/` has zero imports from `internal/`
-- [ ] All imports updated (`store.User` → `domain.User`, etc.)
-- [ ] `make test` passes
+- [x] `internal/domain/user.go` — `User` type, `UserRepository` interface
+- [x] `internal/domain/errors.go` — `ErrNotFound`, `ErrConflict`
+- [x] `UserStore` renamed to `UserRepository` throughout
+- [x] `domain/` has zero imports from `internal/`
+- [x] All imports updated (`store.User` → `domain.User`, etc.)
+- [x] `make test` passes
 
 ### Step 2: Promote adapters and rename to Repository
 
-- [ ] `internal/memory/` (moved from `store/memory/`), struct renamed to `Repository`
-- [ ] `internal/postgres/` (moved from `store/postgres/`), struct renamed to `Repository`
-- [ ] `internal/store/` directory removed
-- [ ] All imports updated
-- [ ] `make test` passes
+- [x] `internal/memory/` (moved from `store/memory/`), struct renamed to `Repository`
+- [x] `internal/postgres/` (moved from `store/postgres/`), struct renamed to `Repository`
+- [x] `internal/store/` directory removed
+- [x] All imports updated
+- [x] `make test` passes
 
 ### Step 3: Nest Postgres infrastructure
 
-- [ ] `internal/postgres/database/` (moved from `internal/database/`)
-- [ ] `internal/postgres/schema/` (moved from `internal/schema/`)
-- [ ] `internal/postgres/testdb/` (moved from `internal/testdb/`)
-- [ ] `sqlc.yaml` paths updated
-- [ ] `Makefile` paths updated
-- [ ] `make sql-generate` works
-- [ ] `make test` passes
+- [x] `internal/postgres/database/` (moved from `internal/database/`)
+- [x] `internal/postgres/schema/` (moved from `internal/schema/`)
+- [x] `internal/postgres/testdb/` (moved from `internal/testdb/`)
+- [x] `sqlc.yaml` paths updated
+- [x] `Makefile` paths updated
+- [x] `make sql-generate` works
+- [x] `make test` passes
 
 ### Step 4: Rename `api/` to `httpapi/`
 
-- [ ] `internal/httpapi/` (renamed from `api/`)
-- [ ] Package declarations and imports updated
-- [ ] `make test` passes
+- [x] `internal/httpapi/` (renamed from `api/`)
+- [x] Package declarations and imports updated
+- [x] `make test` passes
 
 ### Step 5: Verify dependency rule
 
-- [ ] `domain/` imports nothing from `internal/`
-- [ ] `postgres/` and `memory/` import only `domain/` (not each other, not `httpapi/`)
-- [ ] `make test-integration` passes
+- [x] `domain/` imports nothing from `internal/`
+- [x] `postgres/` and `memory/` import only `domain/` (not each other, not `httpapi/`)
+- [x] `make test-integration` passes
 
 
 ## Doc 10 — Scaling the Store Layer
