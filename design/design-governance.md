@@ -131,7 +131,7 @@ type Credentials struct {
     PasswordHash string
 }
 
-// internal/store/store.go (social context)
+// internal/domain/user.go (social context)
 type User struct {
     ID          uuid.UUID
     DisplayName string
@@ -139,9 +139,9 @@ type User struct {
 }
 ```
 
-You don't need this split on day one. The signal to split is when a change to the type for one consumer forces you to think about the impact on another. If adding a `PasswordHash` field to `store.User` makes you worry about it appearing in API responses, the type is serving two masters and it's time to separate them.
+You don't need this split on day one. The signal to split is when a change to the type for one consumer forces you to think about the impact on another. If adding a `PasswordHash` field to `domain.User` makes you worry about it appearing in API responses, the type is serving two masters and it's time to separate them.
 
-For Chirpy today, `store.User` serves one context. When auth arrives, watch for the moment it starts serving two.
+For Chirpy today, `domain.User` serves one context. When auth arrives, watch for the moment it starts serving two.
 
 
 ## Telemetry closes the loop

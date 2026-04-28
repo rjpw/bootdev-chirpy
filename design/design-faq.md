@@ -4,15 +4,15 @@ A few reasons, each one practical:
 
 Testability is the biggest one. When your handlers depend on an interface rather than a concrete type, you can pass a fake implementation in tests — one that returns canned data or simulates errors — without touching a database. Tests run fast, run anywhere, and don't need a Postgres instance standing by.
 
-The swap cost drops to near zero. You said it yourself: the course starts in-memory and moves to Postgres. If your handlers call methods on a concrete MemoryStore, switching to Postgres means touching every handler. If they call methods on a ChirpStore interface, you write the Postgres implementation once and change one line in main.go. The handlers never know anything changed.
+The swap cost drops to near zero. You said it yourself: the course starts in-memory and moves to Postgres. If your handlers call methods on a concrete memory repository, switching to Postgres means touching every handler. If they call methods on a ChirpRepository interface, you write the Postgres implementation once and change one line in main.go. The handlers never know anything changed.
 
 It enforces the boundary you actually want. An interface is a contract: "I need something that can do these operations." It prevents persistence details from leaking into business logic. If you find yourself wanting to call a Postgres-specific method from a handler, the interface stops you — which is the right outcome.
 
-It documents intent. Reading store.ChirpStore tells you exactly what the application needs from persistence, nothing more. That's more useful than reading a struct with 40 methods and guessing which ones matter.
+It documents intent. Reading domain.ChirpRepository tells you exactly what the application needs from persistence, nothing more. That's more useful than reading a struct with 40 methods and guessing which ones matter.
 
 The cost is low — you're writing method signatures you'd write anyway — and the benefit compounds as the project grows. It's one of those Go patterns that feels like overhead until the first time you need to swap an implementation or write a test without a real DB, and then it feels obvious.
 
-> explain how the store interface survives the use of sqlc and goose
+> explain how the repository interface survives the use of sqlc and goose
 
 Good question, because sqlc in particular generates its own interface-like layer, and it can look like a collision.
 
@@ -22,31 +22,31 @@ sqlc reads your SQL queries and produces a Queries struct with one method per qu
 
 __The relationship__
 
-Your store.ChirpStore interface is your application's contract. The sqlc-generated Queries struct is an implementation detail. The Postgres store wraps it:
+Your domain.ChirpRepository interface is your application's contract. The sqlc-generated Queries struct is an implementation detail. The Postgres repository wraps it:
 
 ```go
-// internal/store/postgres/postgres.go
-type PostgresStore struct {
-    queries *db.Queries  // sqlc-generated
+// internal/postgres/chirps.go
+type Repository struct {
+    queries *database.Queries  // sqlc-generated
 }
 
-func (s *PostgresStore) CreateChirp(ctx context.Context, body string, userID uuid.UUID) (store.Chirp, error) {
-    row, err := s.queries.CreateChirp(ctx, db.CreateChirpParams{
+func (r *Repository) CreateChirp(ctx context.Context, body string, userID uuid.UUID) (*domain.Chirp, error) {
+    row, err := r.queries.CreateChirp(ctx, database.CreateChirpParams{
         Body:   body,
         UserID: userID,
     })
-    // map db.Chirp → store.Chirp, return
+    // map database.Chirp → domain.Chirp, return
 }
 ```
 
-PostgresStore satisfies store.ChirpStore. The rest of your app never sees sqlc types.
+Repository satisfies domain.ChirpRepository. The rest of your app never sees sqlc types.
 
 __Why not just use sqlc's Querier directly?__
 
 Two reasons:
 
 1. sqlc's Querier is shaped by your SQL, not by your application's needs. It has one method per query, including queries your handlers should never call directly. Your interface expresses intent; sqlc's expresses database operations.
-2. If you ever need to combine multiple sqlc calls into one logical operation (a transaction, or a "create user and return their chirps" call), that logic lives in your store implementation, not scattered across handlers.
+2. If you ever need to combine multiple sqlc calls into one logical operation (a transaction, or a "create user and return their chirps" call), that logic lives in your repository implementation, not scattered across handlers.
 
 __Goose is simpler__
 
@@ -57,9 +57,9 @@ __The mental model__
 ```
 your app (handlers, business logic)
     ↓ depends on
-store.ChirpStore interface
+domain.ChirpRepository interface
     ↓ implemented by
-PostgresStore struct
+postgres.Repository struct
     ↓ uses internally
 sqlc Queries struct
     ↓ runs against

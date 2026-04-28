@@ -1,5 +1,7 @@
 ## The Goal
 
+> **Note:** This doc was written at the start of the project and uses the original package names (`store`, `UserStore`, `api`). The project has since been restructured (doc 09) to use hexagonal/DDD conventions: `domain/` for the core, `UserRepository` for interfaces, `httpapi/` for the HTTP adapter, and `postgres/`/`memory/` as top-level adapter packages. See [feature-development-loop.md](feature-development-loop.md) and [roadmap/10-scaling-the-store-layer.md](roadmap/10-scaling-the-store-layer.md) for the current patterns.
+
 Build the course project in a way that each concern — routing, business logic, persistence, auth — lives in its own package with clear interfaces, so that when the course asks you to add a feature, you're adding it to the right layer, not piling it into main.go.
 
 

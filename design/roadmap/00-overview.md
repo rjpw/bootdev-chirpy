@@ -1,5 +1,7 @@
 # Roadmap: Database Integration Testing
 
+> **Note:** Docs 01–08 use the original package names (`store`, `UserStore`, `PostgresStore`). Doc 09 restructured the project to hexagonal/DDD conventions (`domain`, `UserRepository`, `Repository`). The diagrams below reflect the original layout; see doc 09 for the current structure.
+
 This series of documents walks you through adding database integration tests to the Chirpy API server. By the end, you'll have:
 
 - A shared test helper that spins up a real Postgres container and runs goose migrations

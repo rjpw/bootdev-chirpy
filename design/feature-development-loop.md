@@ -12,14 +12,14 @@ For the principles behind this workflow — why domain over system, how to think
   │  FAST LOOP (no Docker, sub-second tests)                │
   │                                                         │
   │  Requirement → API test (red) → Interface →             │
-  │  Memory store → Handler (green) → Refactor              │
+  │  Memory repository → Handler (green) → Refactor         │
   └──────────────────────────┬──────────────────────────────┘
                              │ design settled
                              ▼
   ┌─────────────────────────────────────────────────────────┐
   │  SLOW LOOP (Docker, real Postgres)                      │
   │                                                         │
-  │  Migration → Queries → sqlc → Postgres store →          │
+  │  Migration → Queries → sqlc → Postgres repository →     │
   │  Integration tests (relational behavior only)           │
   └─────────────────────────────────────────────────────────┘
 ```
@@ -67,10 +67,10 @@ Write tests for the error cases too — validation failures, conflicts, not-foun
 
 ## Step 2: Define the interface
 
-What does the handler need from the store? Write the minimum interface:
+What does the handler need from the repository? Write the minimum interface:
 
 ```go
-type ChirpStore interface {
+type ChirpRepository interface {
     CreateChirp(ctx context.Context, body string, authorID uuid.UUID) (*Chirp, error)
 }
 ```
@@ -95,47 +95,47 @@ type Chirp struct {
 This is what the application thinks about. It may not match the database columns.
 
 
-## Step 3: Implement the memory store (green)
+## Step 3: Implement the memory repository (green)
 
 Make the test pass with the simplest thing that works:
 
 ```go
-func (s *Store) CreateChirp(_ context.Context, body string, authorID uuid.UUID) (*store.Chirp, error) {
-    s.mu.Lock()
-    defer s.mu.Unlock()
+func (r *Repository) CreateChirp(_ context.Context, body string, authorID uuid.UUID) (*domain.Chirp, error) {
+    r.mu.Lock()
+    defer r.mu.Unlock()
 
-    chirp := store.Chirp{
+    chirp := domain.Chirp{
         ID:        uuid.New(),
         CreatedAt: time.Now().UTC().Truncate(time.Microsecond),
         Body:      body,
         AuthorID:  authorID,
     }
-    s.chirps[chirp.ID] = chirp
+    r.chirps[chirp.ID] = chirp
     return &chirp, nil
 }
 ```
 
 Write the handler. Wire it into the router. Run the test. Green.
 
-The memory store should be natural to write. If it's not — if you're simulating joins, faking pagination cursors, or enforcing foreign keys — the interface is leaking system concerns. Fix the interface, not the memory store.
+The memory repository should be natural to write. If it's not — if you're simulating joins, faking pagination cursors, or enforcing foreign keys — the interface is leaking system concerns. Fix the interface, not the memory repository.
 
 
 ## Step 4: Refactor
 
-The feature works against the memory store. Now pressure-test the design:
+The feature works against the memory repository. Now pressure-test the design:
 
 - Does the interface have methods the handler doesn't call? Remove them.
 - Does the domain type have fields the handler doesn't use? Remove them.
 - Does the response shape match what you committed to in the governance checklist?
 - If you identified an NFR (pagination, uniqueness), is it reflected in the interface?
-- Does the handler orchestrate more than one concern? If it calls a store method *and* does something else (hashes a password, issues a token, sends a notification), extract a service method. The handler should delegate to a single call, not coordinate a multi-step workflow. See below.
+- Does the handler orchestrate more than one concern? If it calls a repository method *and* does something else (hashes a password, issues a token, sends a notification), extract a service method. The handler should delegate to a single call, not coordinate a multi-step workflow. See below.
 
 This is the cheapest moment to change the design. No migration to undo, no sqlc to regenerate, no integration tests to update.
 
 
 ### When to extract a service method
 
-A handler that parses a request, calls one store method, and writes a response is fine as-is. No service layer needed.
+A handler that parses a request, calls one repository method, and writes a response is fine as-is. No service layer needed.
 
 The signal is when the handler orchestrates across concerns:
 
@@ -143,7 +143,7 @@ The signal is when the handler orchestrates across concerns:
 // This handler is doing too much
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
     // parse request
-    // look up user by email        ← store concern
+    // look up user by email        ← repository concern
     // compare password hash         ← auth concern
     // issue JWT                     ← auth concern
     // write response
@@ -179,7 +179,7 @@ The service struct holds the dependencies that cross-concern operations need:
 ```go
 // internal/service/service.go
 type Service struct {
-    users     store.UserStore
+    users     domain.UserRepository
     jwtSecret string
 }
 ```
@@ -194,33 +194,33 @@ The rule: if a handler calls two packages to fulfill one request, introduce a se
 The behavior is proven. Make it durable:
 
 1. `make sql-create` — write the migration DDL
-2. Write queries in `internal/schema/queries/<entity>.sql`
+2. Write queries in `internal/postgres/schema/queries/<entity>.sql`
 3. `make sql-generate`
-4. Implement `postgres/<entity>.go` — `toStore*` mapper, interface methods, compile-time check
-5. Wire into `Stores` and `main.go`
+4. Implement `postgres/<entity>.go` — `toDomain*` mapper, interface methods, compile-time check
+5. Wire into `Repositories` and `main.go`
 
 This is translation, not design. The interface already exists. The domain type already exists. You're mapping between sqlc's generated types and your domain types.
 
-The `toStore*` mapper is the seam between the two worlds. It's the only code that knows about both `database.Chirp` and `store.Chirp`. When sqlc regenerates, fix the mapper and nothing else changes.
+The `toDomain*` mapper is the seam between the two worlds. It's the only code that knows about both `database.Chirp` and `domain.Chirp`. When sqlc regenerates, fix the mapper and nothing else changes.
 
 
 ## Step 6: Integration tests
 
-Not every store method needs an integration test. The API tests already proved the domain behavior. Integration tests verify two things:
+Not every repository method needs an integration test. The API tests already proved the domain behavior. Integration tests verify two things:
 
 ### Translation correctness
 
-Does the postgres store correctly bridge domain operations and SQL?
+Does the postgres repository correctly bridge domain operations and SQL?
 
 - Error mapping: unique violation → `ErrConflict`, no rows → `ErrNotFound`
-- Field mapping: does `toStoreChirp` round-trip all fields correctly?
+- Field mapping: does `toChirp` round-trip all fields correctly?
 - Multi-step operations: does a method that coordinates multiple queries work with committed data?
 
 Skip these for trivial pass-throughs (one sqlc call, one mapper).
 
 ### Relational behavior
 
-Some behaviors only exist in the database. The memory store can't express them and shouldn't try:
+Some behaviors only exist in the database. The memory repository can't express them and shouldn't try:
 
 - **Cascades**: delete a user → their chirps disappear (or the delete is rejected)
 - **Referential integrity**: create a chirp for a nonexistent user → FK violation
@@ -230,12 +230,12 @@ Some behaviors only exist in the database. The memory store can't express them a
 Write these when you add a migration that creates a relationship. They test the DDL, not the Go code. The rule of thumb: if the behavior depends on a SQL clause (`ON DELETE CASCADE`, `REFERENCES`, `UNIQUE(a, b)`), it needs an integration test.
 
 
-## The memory store is not scaffolding
+## The memory repository is not scaffolding
 
 It serves three ongoing purposes:
 
 1. **Fast API tests** — `newTestServer` uses it. Sub-millisecond, no Docker, no cleanup.
-2. **Interface design feedback** — if it's awkward to implement, the interface is wrong. The memory store is the first customer for every interface, and the most honest one.
-3. **Test isolation** — each test gets a fresh store. No shared state, no snapshot/restore, no rollback. Tests are independent and parallelizable.
+2. **Interface design feedback** — if it's awkward to implement, the interface is wrong. The memory repository is the first customer for every interface, and the most honest one.
+3. **Test isolation** — each test gets a fresh repository. No shared state, no snapshot/restore, no rollback. Tests are independent and parallelizable.
 
-The postgres store is the production implementation. The memory store is the development implementation. Both are first-class.
+The postgres repository is the production implementation. The memory repository is the development implementation. Both are first-class.
