@@ -10,7 +10,7 @@ Design rationale: [design/roadmap/devops/04-always-on-deployment.md](devops/04-a
 - SIGTERM handling and shutdown timeout
 - Database connection pool limits
 - Separate readiness and liveness endpoints
-- Startup schema gate (builds on [11-schema-version-check.md](11-schema-version-check.md))
+- Startup schema gate (builds on [12-schema-version-check.md](12-schema-version-check.md))
 
 
 ## Step 1: SIGTERM and shutdown timeout
@@ -210,7 +210,7 @@ GET /livez    → liveness (process is responsive)
 ```
 
 For the initial implementation, register two checks:
-- **Schema** (private): cached boolean set at startup (from [11-schema-version-check.md](11-schema-version-check.md)). If the schema isn't current, this pod specifically can't serve correct responses.
+- **Schema** (private): cached boolean set at startup (from [12-schema-version-check.md](12-schema-version-check.md)). If the schema isn't current, this pod specifically can't serve correct responses.
 - **Database** (shared): `db.PingContext(ctx)` with a generous timeout. Reported in the response for observability, but doesn't fail the probe. All pods share the same database — if it's down, removing all pods from the Service makes things worse.
 
 Configure the K8s probe conservatively:

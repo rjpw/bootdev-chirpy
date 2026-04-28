@@ -319,7 +319,7 @@ These questions connect what you build to how it runs. An SLA commitment constra
 
 **Health and failure:**
 - [ ] Does this feature affect readiness? (new startup dependency, new subsystem that must initialize before serving)
-- [ ] Is the new dependency private (this pod's state) or shared (all pods use it)? Private failures can fail readiness; shared failures should not. See [roadmap/12-always-on-readiness.md](roadmap/12-always-on-readiness.md).
+- [ ] Is the new dependency private (this pod's state) or shared (all pods use it)? Private failures can fail readiness; shared failures should not. See [roadmap/13-always-on-readiness.md](roadmap/13-always-on-readiness.md).
 - [ ] If initialization fails, does the process crash or degrade? (Crash is almost always correct — let the orchestrator restart with backoff. A degraded pod that passes liveness but fails readiness is invisible to most monitoring.)
 - [ ] What is the recovery path if this feature fails at runtime? (automatic restart, manual intervention, circuit breaker, fallback)
 

@@ -36,4 +36,4 @@ This is expected and reinforces existing conventions:
 
 ## Implementation
 
-See [roadmap/11-schema-version-check.md](roadmap/11-schema-version-check.md).
+See [roadmap/12-schema-version-check.md](roadmap/12-schema-version-check.md).

@@ -31,7 +31,7 @@ A service must report its own health accurately. Not "the process is running" �
 
 Separate liveness (is the process stuck?) from readiness (can I serve traffic?). Classify dependencies as private (this instance's state) or shared (all instances use it). Never fail readiness on a shared dependency — you'll cascade a latency spike into a total outage. If startup fails irrecoverably, crash. Let the orchestrator restart you. A degraded process that lingers is worse than one that dies cleanly.
 
-*See: [roadmap/12-always-on-readiness.md](roadmap/12-always-on-readiness.md), [roadmap/devops/04-always-on-deployment.md](roadmap/devops/04-always-on-deployment.md)*
+*See: [roadmap/13-always-on-readiness.md](roadmap/13-always-on-readiness.md), [roadmap/devops/04-always-on-deployment.md](roadmap/devops/04-always-on-deployment.md)*
 
 
 ## IV. Schema as Code
@@ -67,7 +67,7 @@ A service doesn't exist alone. It runs alongside other replicas, behind a load b
 
 Handle SIGTERM. Use a shutdown timeout. Limit your connection pool. Understand that your orchestrator will start, stop, and replace your process without asking — and design for that. A service that can't be safely restarted can't be safely deployed.
 
-*See: [roadmap/12-always-on-readiness.md](roadmap/12-always-on-readiness.md), [roadmap/devops/04-always-on-deployment.md](roadmap/devops/04-always-on-deployment.md)*
+*See: [roadmap/13-always-on-readiness.md](roadmap/13-always-on-readiness.md), [roadmap/devops/04-always-on-deployment.md](roadmap/devops/04-always-on-deployment.md)*
 
 
 ## VIII. Measured Confidence

@@ -118,6 +118,18 @@ Progress tracker for the roadmap docs. Tick items as they're completed in code.
 - [x] `postgres/` and `memory/` import only `domain/` (not each other, not `httpapi/`)
 - [x] `make test-integration` passes
 
+### Step 6: Enforce hex boundaries in tests
+
+Reference: [design/testing-at-hex-boundaries.md](../testing-at-hex-boundaries.md)
+
+- [x] Delete `Server.CreateUser` — inline `s.cfg.Users.CreateUser` in the handler
+- [x] Rewrite `users_test.go` to test through HTTP (POST, check status and body)
+- [x] Rewrite `chirp_test.go` to use raw JSON instead of unexported `parameters` struct
+- [x] Rewrite `metrics_test.go` to test through HTTP endpoints instead of `s.cfg`
+- [x] All httpapi test files use `package httpapi_test`
+- [x] `Server`'s exported API is only `NewServer` and `ServeHTTP`
+- [x] `make test` passes
+
 
 ## Doc 10 — Scaling the Store Layer
 
@@ -149,13 +161,29 @@ Slow loop (Docker, real Postgres):
 
 ---
 
+## Doc 11 — OpenAPI Codegen
+
+- [ ] `api/openapi.yaml` describes all existing endpoints
+- [ ] `api/codegen.yaml` configures oapi-codegen
+- [ ] `make api-generate` produces `internal/httpapi/openapi.gen.go`
+- [ ] `Server` implements the generated `ServerInterface`
+- [ ] Hand-written request/response structs removed
+- [ ] Hand-written routing removed
+- [ ] Hand-written validation replaced by spec constraints
+- [ ] Tests updated — no longer testing generated behavior
+- [ ] `make test` passes
+- [ ] README documents the codegen workflow
+
+
+---
+
 ## Milestone: Production Readiness
 
-Docs 11–12 make the server safe for multi-replica, zero-downtime deployment.
+Docs 12–13 make the server safe for multi-replica, zero-downtime deployment.
 Prerequisite: startup must fail fast if the database is unreachable.
 
 
-## Doc 11 — Schema Version Check
+## Doc 12 — Schema Version Check
 
 - [ ] Migration checker function with tests
 - [ ] Startup gate in `main.go` (exit if migrations pending)
@@ -164,7 +192,7 @@ Prerequisite: startup must fail fast if the database is unreachable.
 - [ ] README documents the behavior
 
 
-## Doc 12 — Always-On Readiness
+## Doc 13 — Always-On Readiness
 
 ### Step 0: Startup DB ping (fail fast)
 
