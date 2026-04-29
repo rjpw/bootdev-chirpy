@@ -29,6 +29,9 @@ test-db:
 test-integration:
 	go test -race -tags integration -count=1 ./...
 
+test-hex-guardrail:
+	go test -run TestHexBoundaries -v .
+
 sql-create:
 	@read -p "Migration name: " name; \
 	goose create $$name sql

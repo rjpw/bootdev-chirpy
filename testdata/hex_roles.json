@@ -1,0 +1,8 @@
+{
+  "internal/domain":   "core",
+  "internal/httpapi":  "driving",
+  "internal/memory":   "driven",
+  "internal/postgres": "driven",
+  "internal/config":   "root",
+  "internal/metrics":  "infra"
+}

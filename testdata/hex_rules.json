@@ -1,0 +1,7 @@
+{
+  "core":    [],
+  "driving": ["core", "root"],
+  "driven":  ["core"],
+  "root":    ["core", "driving", "driven", "infra", "root"],
+  "infra":   []
+}
