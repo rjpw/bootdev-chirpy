@@ -6,16 +6,6 @@ import (
 	"testing"
 )
 
-func hitFileserver(t *testing.T, srv http.Handler) {
-	t.Helper()
-	r := httptest.NewRequest("GET", "/app/hello.txt", nil)
-	w := httptest.NewRecorder()
-	srv.ServeHTTP(w, r)
-	if w.Code != http.StatusOK {
-		t.Fatalf("fileserver hit failed: got %d", w.Code)
-	}
-}
-
 func getHitCount(t *testing.T, srv http.Handler) int {
 	t.Helper()
 	r := httptest.NewRequest("GET", "/admin/metrics", nil)
