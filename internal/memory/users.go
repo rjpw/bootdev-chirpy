@@ -8,7 +8,9 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
-var _ domain.UserRepository = (*Repository)(nil) // ensure MemoryStore implements the UserStore interface
+var _ domain.UserRepository = (*Repository)(
+	nil,
+) // ensure MemoryStore implements the UserStore interface
 
 func (s *Repository) CreateUser(_ context.Context, email string) (*domain.User, error) {
 	s.mu.Lock()

@@ -17,7 +17,6 @@ func getHitCount(t *testing.T, srv http.Handler) int {
 	}
 
 	return parseHitCount(t, w.Body.String())
-
 }
 
 func TestMetricsInitiallyZero(t *testing.T) {

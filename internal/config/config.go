@@ -11,7 +11,11 @@ type Config struct {
 	Users    domain.UserRepository
 }
 
-func NewConfig(platform string, metrics *metrics.ServerMetrics, users domain.UserRepository) *Config {
+func NewConfig(
+	platform string,
+	metrics *metrics.ServerMetrics,
+	users domain.UserRepository,
+) *Config {
 	return &Config{
 		Platform: platform,
 		Metrics:  metrics,

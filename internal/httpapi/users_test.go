@@ -66,11 +66,9 @@ func TestCreateOneUser(t *testing.T) {
 			}
 		}
 	}
-
 }
 
 func TestCreateUserConflict(t *testing.T) {
-
 	srv := newTestServer("dev")
 
 	cases := []struct {
@@ -116,5 +114,4 @@ func TestCreateUserConflict(t *testing.T) {
 		}
 
 	}
-
 }
