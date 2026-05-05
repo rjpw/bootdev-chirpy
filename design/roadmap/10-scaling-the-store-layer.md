@@ -7,13 +7,14 @@ Reference card for the mechanical patterns used when adding entities. For the de
 
 | Layer | Files | Work |
 |-------|-------|------|
-| Domain type + interface | `internal/domain/<entity>.go` | Add struct + interface |
+| Domain type | `internal/domain/<entity>.go` | Add struct |
+| Repository interface | `internal/application/application.go` | Add interface |
 | Memory impl | `internal/memory/<entity>.go` | Implement interface, compile-time check |
 | HTTP handler + tests | `internal/httpapi/` | Handler, route, HTTP tests |
 | Migration | `internal/postgres/schema/migrations/` | `make sql-create`, write DDL |
 | SQL queries | `internal/postgres/schema/queries/<entity>.sql` | Write queries, `make sql-generate` |
 | Postgres impl | `internal/postgres/<entity>.go` | Implement interface, `toDomain*` mapper, compile-time check |
-| Config + wiring | `internal/config/config.go`, `cmd/chirpy/main.go`, `server_test.go` | Add to `Repositories`, wire |
+| Assembly wiring | `internal/config/config.go` | Add to `Repositories` struct |
 | Integration tests | `internal/postgres/<entity>_test.go` | Only for non-trivial translation |
 
 Order matters — work top to bottom. See [design/feature-development-loop.md](../../design/feature-development-loop.md) for why.
@@ -22,6 +23,7 @@ Order matters — work top to bottom. See [design/feature-development-loop.md](.
 ## One interface per entity
 
 ```go
+// internal/application/application.go
 type UserRepository interface { ... }
 type ChirpRepository interface { ... }
 ```
@@ -33,10 +35,10 @@ Not a combined `Repository` interface. Each handler declares only the interfaces
 
 ```go
 // postgres/users.go
-var _ domain.UserRepository = (*Repository)(nil)
+var _ application.UserRepository = (*Repository)(nil)
 
 // postgres/chirps.go
-var _ domain.ChirpRepository = (*Repository)(nil)
+var _ application.ChirpRepository = (*Repository)(nil)
 ```
 
 Same for `memory.Repository`. One struct, multiple interface satisfactions, methods split across files by entity.
@@ -45,10 +47,11 @@ Same for `memory.Repository`. One struct, multiple interface satisfactions, meth
 ## Repositories struct
 
 ```go
+// internal/application/application.go
 type Repositories struct {
-    Users  domain.UserRepository
-    Chirps domain.ChirpRepository
-    Tokens domain.TokenRepository
+    Users  UserRepository
+    Chirps ChirpRepository
+    Tokens TokenRepository
 }
 ```
 
@@ -58,9 +61,11 @@ Named fields in wiring. Tests populate only what they need — unused repositori
 ## File-per-entity convention
 
 ```
-internal/domain/user.go              ← User type + UserRepository interface
-internal/domain/chirp.go             ← Chirp type + ChirpRepository interface
+internal/domain/user.go              ← User type
+internal/domain/chirp.go             ← Chirp type
 internal/domain/errors.go            ← shared sentinel errors
+
+internal/application/application.go  ← repository interfaces + Repositories struct
 
 internal/postgres/users.go           ← UserRepository methods, toUser mapper, compile-time check
 internal/postgres/chirps.go
