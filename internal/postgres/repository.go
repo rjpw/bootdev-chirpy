@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/lib/pq"
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 )
@@ -13,8 +14,12 @@ type Repository struct {
 	db *database.Queries
 }
 
-func NewPostgresRepository(db *database.Queries) *Repository {
-	return &Repository{db: db}
+func NewPostgresRepository(db *database.Queries) *application.Repositories {
+	repo := &Repository{db: db}
+	return &application.Repositories{
+		Users:  repo,
+		Chirps: nil, // for now
+	}
 }
 
 // see https://www.postgresql.org/docs/current/errcodes-appendix.html

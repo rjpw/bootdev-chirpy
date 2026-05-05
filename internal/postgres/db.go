@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 )
 
@@ -12,7 +13,7 @@ func Open(url string) (*sql.DB, error) {
 	return sql.Open("postgres", url)
 }
 
-func NewPostgresRepositoryFromURL(dbURL string) (*Repository, *sql.DB, error) {
+func NewPostgresRepositoryFromURL(dbURL string) (*application.Repositories, *sql.DB, error) {
 	db, err := Open(dbURL)
 	if err != nil {
 		return nil, nil, err

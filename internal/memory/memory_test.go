@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/memory"
 )
 
-func newMemoryRepo() domain.UserRepository {
+func newMemoryRepo() application.UserRepository {
 	return memory.NewMemoryRepository()
 }
 

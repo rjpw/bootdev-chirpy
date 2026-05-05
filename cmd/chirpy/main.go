@@ -14,9 +14,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"github.com/rjpw/bootdev-chirpy/internal/config"
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
-	"github.com/rjpw/bootdev-chirpy/internal/metrics"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/schema"
 )
@@ -38,21 +37,15 @@ func main() {
 		log.Fatalf("Failed to create config: %v", err)
 	}
 
-	store, db, err := postgres.NewPostgresRepositoryFromURL(env.DBURL)
+	repositories, db, err := postgres.NewPostgresRepositoryFromURL(env.DBURL)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
 	defer db.Close()
 
-	cfg := config.NewConfig(
-		env.Platform,
-		&metrics.ServerMetrics{},
-		store,
-	)
-
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
-		Handler:           httpapi.NewServer(cfg, "./root"),
+		Handler:           httpapi.NewServer(env.Platform, &application.ServerMetrics{}, repositories, "./root"),
 		ReadHeaderTimeout: time.Millisecond * 30000,
 	}
 

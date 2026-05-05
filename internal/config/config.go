@@ -1,24 +1,23 @@
 package config
 
 import (
-	"github.com/rjpw/bootdev-chirpy/internal/domain"
-	"github.com/rjpw/bootdev-chirpy/internal/metrics"
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 )
 
 type Config struct {
-	Platform string
-	Metrics  *metrics.ServerMetrics
-	Users    domain.UserRepository
+	Platform     string
+	Metrics      *application.ServerMetrics
+	Repositories *application.Repositories
 }
 
 func NewConfig(
 	platform string,
-	metrics *metrics.ServerMetrics,
-	users domain.UserRepository,
+	metrics *application.ServerMetrics,
+	repositories *application.Repositories,
 ) *Config {
 	return &Config{
-		Platform: platform,
-		Metrics:  metrics,
-		Users:    users,
+		Platform:     platform,
+		Metrics:      metrics,
+		Repositories: repositories,
 	}
 }

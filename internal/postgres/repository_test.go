@@ -6,12 +6,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/testdb"
 )
 
-func setupTestRepository(t *testing.T) *postgres.Repository {
+func setupTestRepository(t *testing.T) *application.Repositories {
 	t.Helper()
 	ephemeralDB := testdb.Setup(t)
 	t.Cleanup(func() {
@@ -20,5 +21,6 @@ func setupTestRepository(t *testing.T) *postgres.Repository {
 			t.Fatalf("failed to restore test database container: %v", err)
 		}
 	})
+
 	return postgres.NewPostgresRepository(database.New(ephemeralDB.DB))
 }

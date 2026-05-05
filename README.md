@@ -119,6 +119,7 @@ Integration tests are gated behind a `//go:build integration` tag. `make test` s
 | `make test` | Run all tests with race detector |
 | `make test-integration` | Run all tests including integration |
 | `make test-db` | Run database/store integration tests only |
+| `make test-hex-guardrail` | Run hex architecture boundary check only |
 | `make lint` | Run golangci-lint |
 | `make format` | Auto-format with golangci-lint |
 | `make sql-status` | Show migration status |
@@ -156,4 +157,27 @@ See [design/roadmap/devops/03-release-process.md](design/roadmap/devops/03-relea
 ## Architecture
 
 See `design/` for roadmap docs, design decisions, and FAQs about the project's interface-driven architecture.
+
+### Hex boundary enforcement
+
+The project follows hexagonal architecture. Each package under `internal/` has a role — core (domain), driving adapter (httpapi), driven adapter (memory, postgres), composition root (config), or infrastructure (metrics). The dependency rule is: adapters depend on the core, never on each other. The core depends on nothing internal.
+
+These boundaries are enforced by an automated test (`hex_guardrail_test.go`) that runs as part of `make test`. The test uses `go list -json` to inspect the actual import graph of every internal package and checks each import against a set of rules.
+
+The classifications and rules are data-driven, defined in two files:
+
+- `testdata/hex_roles.json` — maps each package to its hex role
+- `testdata/hex_rules.json` — defines which roles may import which other roles
+
+When you add a new package under `internal/`, add an entry to `hex_roles.json` with its role. The rules apply automatically. If a package imports something its role doesn't allow, the test fails with a message like:
+
+```
+hex violation: internal/domain (core) imports internal/metrics (infra)
+```
+
+To run the boundary check in isolation:
+
+```bash
+make test-hex-guardrail
+```
 

@@ -1,8 +1,9 @@
 {
-  "internal/domain":   "core",
-  "internal/httpapi":  "driving",
-  "internal/memory":   "driven",
-  "internal/postgres": "driven",
-  "internal/config":   "root",
-  "internal/metrics":  "infra"
+  "internal/domain":      "domain",
+  "internal/application": "application",
+  "internal/metrics":     "application",
+  "internal/httpapi":     "adapter",
+  "internal/memory":      "adapter",
+  "internal/postgres":    "adapter",
+  "internal/config":      "assembly"
 }

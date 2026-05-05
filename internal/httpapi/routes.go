@@ -11,8 +11,8 @@ func (s *Server) registerRoutes() {
 
 	s.mux.Handle(
 		"/app/",
-		s.cfg.Metrics.MiddlewareMetricsInc(
-			http.StripPrefix("/app", http.FileServer(http.Dir(s.root))),
+		s.Metrics.MiddlewareMetricsInc(
+			http.StripPrefix("/app", http.FileServer(http.Dir(s.staticPath))),
 		),
 	)
 }

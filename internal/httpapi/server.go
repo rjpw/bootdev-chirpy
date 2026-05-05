@@ -6,21 +6,32 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rjpw/bootdev-chirpy/internal/config"
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 )
 
 type Server struct {
-	cfg  *config.Config
-	mux  *http.ServeMux
-	root string
+	mux          *http.ServeMux
+	staticPath   string
+	Platform     string
+	Metrics      *application.ServerMetrics
+	Repositories *application.Repositories
 }
 
 type jsonError struct {
 	Error string `json:"error"`
 }
 
-func NewServer(cfg *config.Config, root string) *Server {
-	s := &Server{cfg: cfg, mux: http.NewServeMux(), root: root}
+func NewServer(platform string,
+	metrics *application.ServerMetrics,
+	repositories *application.Repositories,
+	staticPath string) *Server {
+	s := &Server{
+		mux:          http.NewServeMux(),
+		staticPath:   staticPath,
+		Platform:     platform,
+		Metrics:      metrics,
+		Repositories: repositories,
+	}
 	s.registerRoutes()
 	return s
 }
@@ -49,15 +60,15 @@ func (s *Server) respondWithMessage(w http.ResponseWriter, statusCode int, messa
 func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
 	// require server config platform to be "dev" to allow reset,
 	// otherwise return 403 Forbidden
-	if s.cfg.Platform != "dev" {
+	if s.Platform != "dev" {
 		s.respondWithMessage(
 			w,
 			http.StatusForbidden,
 			"Forbidden: reset is only allowed in dev environment",
 		)
 	} else {
-		s.cfg.Metrics.Reset()
-		err := s.cfg.Users.DeleteAllUsers(context.Background())
+		s.Metrics.Reset()
+		err := s.Repositories.Users.DeleteAllUsers(context.Background())
 		if err != nil {
 			s.respondWithMessage(w, http.StatusInternalServerError, "Failed to delete all users")
 			return
@@ -65,7 +76,7 @@ func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
 		s.respondWithMessage(
 			w,
 			http.StatusOK,
-			fmt.Sprintf("Hits: %d", s.cfg.Metrics.FileserverHits()),
+			fmt.Sprintf("Hits: %d", s.Metrics.FileserverHits()),
 		)
 	}
 }

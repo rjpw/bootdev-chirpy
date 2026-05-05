@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 )
 
 // Compile-time check to ensure that *Repository implements the domain.UserRepository interface.
 // This will cause a compilation error if Repository does not satisfy all methods of UserRepository.
-var _ domain.UserRepository = (*Repository)(nil)
+var _ application.UserRepository = (*Repository)(nil)
 
 func toRepositoryUser(dbUser database.User) *domain.User {
 	return &domain.User{
