@@ -226,3 +226,17 @@ Prerequisite: startup must fail fast if the database is unreachable.
 
 - [ ] Existing `/api/healthz` still works (backward compatibility)
 - [ ] README documents the new health endpoints
+
+
+---
+
+## Doc 14 — Observability
+
+- [ ] Extract metrics interface in `application/`
+- [ ] Move `ServerMetrics` implementation to an adapter
+- [ ] Assembly wires metrics adapter (production, no-op for tests)
+- [ ] Define logging interface in `application/`
+- [ ] Implement structured logging adapter (slog-based)
+- [ ] Handlers and services log through interface, not `log`/`fmt`
+- [ ] Health/readiness endpoints verify DB connectivity
+- [ ] `make test` passes
