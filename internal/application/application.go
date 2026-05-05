@@ -6,6 +6,17 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
+type Runnable interface {
+	Run(ctx context.Context) error
+	Close() error
+}
+
+type Environment struct {
+	DBName   string
+	DBURL    string
+	Platform string
+}
+
 type Repositories struct {
 	Users  UserRepository
 	Chirps ChirpRepository

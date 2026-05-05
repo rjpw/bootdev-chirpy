@@ -6,13 +6,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/testdb"
 )
 
-func setupTestRepository(t *testing.T) *application.Repositories {
+func setupTestRepository(t *testing.T) *postgres.Repository {
 	t.Helper()
 	ephemeralDB := testdb.Setup(t)
 	t.Cleanup(func() {

@@ -15,7 +15,7 @@ func TestCreateUser(t *testing.T) {
 	repos := setupTestRepository(t)
 	ctx := context.Background()
 	email := "alice@example.com"
-	user, err := repos.Users.CreateUser(ctx, email)
+	user, err := repos.CreateUser(ctx, email)
 	if err != nil {
 		t.Fatalf("CreateUser: %v", err)
 	}
@@ -40,12 +40,12 @@ func TestCreateUserDuplicateEmail(t *testing.T) {
 	repos := setupTestRepository(t)
 	ctx := context.Background()
 
-	_, err := repos.Users.CreateUser(ctx, "dupe@example.com")
+	_, err := repos.CreateUser(ctx, "dupe@example.com")
 	if err != nil {
 		t.Fatalf("first CreateUser: %v", err)
 	}
 
-	_, err = repos.Users.CreateUser(ctx, "dupe@example.com")
+	_, err = repos.CreateUser(ctx, "dupe@example.com")
 	if !errors.Is(err, domain.ErrConflict) {
 		t.Errorf("expected ErrConflict, got: %v", err)
 	}

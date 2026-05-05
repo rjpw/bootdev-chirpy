@@ -5,5 +5,6 @@
   "internal/httpapi":     "adapter",
   "internal/memory":      "adapter",
   "internal/postgres":    "adapter",
+  "internal/operations":  "adapter",
   "internal/config":      "assembly"
 }
