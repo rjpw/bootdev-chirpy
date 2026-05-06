@@ -21,7 +21,6 @@ func TestMethodResponseCodes(t *testing.T) {
 		{"POST", "/api/healthz", 405, ""},
 		{"GET", "/admin/reset", 405, ""},
 		{"POST", "/admin/reset", 200, ""}, // forbidden in production, but 200 in platform "dev"
-		{"GET", "/api/chirps", 405, ""},
 		{"PUT", "/api/chirps", 405, ""},
 	}
 	for _, tc := range cases {

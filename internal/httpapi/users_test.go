@@ -16,30 +16,36 @@ import (
 
 func TestCreateOneUser(t *testing.T) {
 	cases := []struct {
+		name         string
 		method       string
 		path         string
 		contentType  string
 		email        string
+		password     string
 		responseCode int
 	}{
 		{
+			"reset server",
 			"POST",
 			"/admin/reset",
 			"text/plain; charset=utf-8",
 			"",
+			"",
 			200,
 		},
 		{
+			"create user",
 			"POST",
 			"/api/users",
 			"application/json; charset=utf-8",
 			"user@example.com",
+			"123456",
 			201,
 		},
 	}
 	for _, tc := range cases {
 		srv := newTestServer("dev")
-		payload := fmt.Sprintf("{\"email\": \"%s\"}", tc.email)
+		payload := fmt.Sprintf("{\"password\": \"%s\", \"email\": \"%s\"}", tc.password, tc.email)
 		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(payload))
 		w := httptest.NewRecorder()
 
@@ -72,36 +78,44 @@ func TestCreateUserConflict(t *testing.T) {
 	srv := newTestServer("dev")
 
 	cases := []struct {
+		name         string
 		method       string
 		path         string
 		contentType  string
 		email        string
+		password     string
 		responseCode int
 	}{
 		{
+			"reset server",
 			"POST",
 			"/admin/reset",
 			"text/plain; charset=utf-8",
 			"",
+			"",
 			http.StatusOK,
 		},
 		{
+			"create new user",
 			"POST",
 			"/api/users",
 			"application/json; charset=utf-8",
 			"user@example.com",
+			"123456",
 			http.StatusCreated,
 		},
 		{
+			"create conflicting user",
 			"POST",
 			"/api/users",
 			"text/plain; charset=utf-8",
 			"user@example.com",
+			"123456",
 			http.StatusConflict,
 		},
 	}
 	for _, tc := range cases {
-		payload := fmt.Sprintf("{\"email\": \"%s\"}", tc.email)
+		payload := fmt.Sprintf("{\"password\": \"%s\", \"email\": \"%s\"}", tc.password, tc.email)
 		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(payload))
 		w := httptest.NewRecorder()
 
@@ -111,6 +125,55 @@ func TestCreateUserConflict(t *testing.T) {
 		}
 		if w.Code != tc.responseCode {
 			t.Errorf("Expected response code %d, got %d", tc.responseCode, w.Code)
+		}
+
+	}
+}
+
+func TestAuthentication(t *testing.T) {
+	srv := newTestServer("dev")
+
+	cases := []struct {
+		name         string
+		method       string
+		path         string
+		email        string
+		password     string
+		responseCode int
+	}{
+		{
+			"create user",
+			"POST",
+			"/api/users",
+			"user@example.com",
+			"123456",
+			http.StatusCreated,
+		},
+		{
+			"login with correct password",
+			"POST",
+			"/api/login",
+			"user@example.com",
+			"123456",
+			http.StatusOK,
+		},
+		{
+			"login with incorrect password",
+			"POST",
+			"/api/login",
+			"user@example.com",
+			"000111222",
+			http.StatusUnauthorized,
+		},
+	}
+	for _, tc := range cases {
+		payload := fmt.Sprintf("{\"password\": \"%s\", \"email\": \"%s\"}", tc.password, tc.email)
+		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(payload))
+		w := httptest.NewRecorder()
+
+		srv.ServeHTTP(w, r)
+		if w.Code != tc.responseCode {
+			t.Errorf("%s -- Expected response code %d, got %d", tc.name, tc.responseCode, w.Code)
 		}
 
 	}

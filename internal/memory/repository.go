@@ -11,14 +11,16 @@ import (
 )
 
 type Repository struct {
-	mu    sync.RWMutex
-	users map[uuid.UUID]domain.User
-	chips map[uuid.UUID]domain.Chirp
+	mu              sync.RWMutex
+	users           map[uuid.UUID]domain.User
+	userCredentials map[uuid.UUID]domain.UserCredentials
+	chirps          map[uuid.UUID]domain.Chirp
 }
 
 func NewMemoryRepository() *Repository {
 	return &Repository{
-		users: make(map[uuid.UUID]domain.User),
-		chips: make(map[uuid.UUID]domain.Chirp),
+		users:           make(map[uuid.UUID]domain.User),
+		userCredentials: make(map[uuid.UUID]domain.UserCredentials),
+		chirps:          make(map[uuid.UUID]domain.Chirp),
 	}
 }

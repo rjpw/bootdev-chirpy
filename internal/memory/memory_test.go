@@ -21,7 +21,8 @@ func TestCreateUser(t *testing.T) {
 
 	ctx := context.Background()
 	email := "test@example.com"
-	user, err := repo.CreateUser(ctx, email)
+	password := "123456"
+	user, err := repo.CreateUser(ctx, email, password)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
@@ -49,13 +50,14 @@ func TestCreateUserConflict(t *testing.T) {
 
 	ctx := context.Background()
 	email := "test@example.com"
-	_, err := repo.CreateUser(ctx, email)
+	password := "123456"
+	_, err := repo.CreateUser(ctx, email, password)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}
 	// try to create another user with the same email,
 	// should get conflict error
-	_, err = repo.CreateUser(ctx, email)
+	_, err = repo.CreateUser(ctx, email, password)
 	if !errors.Is(err, domain.ErrConflict) {
 		t.Fatalf("Expected ErrConflict when creating user with duplicate email, got: %v", err)
 	}
@@ -66,8 +68,9 @@ func TestGetUserByEmail(t *testing.T) {
 
 	ctx := context.Background()
 	email := "test@example.com"
+	password := "123456"
 
-	_, err := repo.CreateUser(ctx, email)
+	_, err := repo.CreateUser(ctx, email, password)
 	if err != nil {
 		t.Fatalf("Failed to create user: %v", err)
 	}

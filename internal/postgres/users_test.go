@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
@@ -15,7 +16,8 @@ func TestCreateUser(t *testing.T) {
 	repos := setupTestRepository(t)
 	ctx := context.Background()
 	email := "alice@example.com"
-	user, err := repos.CreateUser(ctx, email)
+	password, _ := auth.HashPassword("123456")
+	user, err := repos.CreateUser(ctx, email, password)
 	if err != nil {
 		t.Fatalf("CreateUser: %v", err)
 	}
@@ -40,12 +42,14 @@ func TestCreateUserDuplicateEmail(t *testing.T) {
 	repos := setupTestRepository(t)
 	ctx := context.Background()
 
-	_, err := repos.CreateUser(ctx, "dupe@example.com")
+	password, _ := auth.HashPassword("123456")
+
+	_, err := repos.CreateUser(ctx, "dupe@example.com", password)
 	if err != nil {
 		t.Fatalf("first CreateUser: %v", err)
 	}
 
-	_, err = repos.CreateUser(ctx, "dupe@example.com")
+	_, err = repos.CreateUser(ctx, "dupe@example.com", password)
 	if !errors.Is(err, domain.ErrConflict) {
 		t.Errorf("expected ErrConflict, got: %v", err)
 	}

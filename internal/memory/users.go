@@ -2,10 +2,13 @@ package memory
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/application"
+	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
@@ -13,7 +16,7 @@ var _ application.UserRepository = (*Repository)(
 	nil,
 ) // ensure MemoryStore implements the UserStore interface
 
-func (s *Repository) CreateUser(_ context.Context, email string) (*domain.User, error) {
+func (s *Repository) CreateUser(_ context.Context, email, password string) (*domain.User, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -32,8 +35,14 @@ func (s *Repository) CreateUser(_ context.Context, email string) (*domain.User, 
 		UpdatedAt: now,
 		Email:     email,
 	}
+	userCreds := domain.UserCredentials{
+		ID:       id,
+		Password: password,
+	}
 
 	s.users[id] = user
+	s.userCredentials[id] = userCreds
+	fmt.Printf("ID: %s, H: %s\n", id.String(), password)
 	return &user, nil
 }
 
@@ -48,6 +57,25 @@ func (s *Repository) GetUserByEmail(_ context.Context, email string) (*domain.Us
 	}
 
 	return nil, domain.ErrNotFound
+}
+
+func (s *Repository) AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error) {
+	user, err := s.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	creds := s.userCredentials[user.ID]
+	ok, err := auth.CheckPasswordHash(password, creds.Password)
+	fmt.Printf("P: %s, H: %s, OK: %v\n", password, creds.Password, ok)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, errors.New("Not authorized")
+	}
+
+	return user, nil
 }
 
 func (s *Repository) GetUserByID(_ context.Context, id string) (*domain.User, error) {

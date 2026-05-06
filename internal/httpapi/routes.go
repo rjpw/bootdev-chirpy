@@ -9,6 +9,7 @@ func (s *Server) registerRoutes() {
 	s.mux.HandleFunc("POST /admin/reset", s.handleReset)
 
 	s.mux.HandleFunc("POST /api/users", s.handleCreateUser)
+	s.mux.HandleFunc("POST /api/login", s.handleLogin)
 
 	// s.mux.HandleFunc("POST /api/validate_chirp",
 	// 	withValidBody[ChirpParams](s.handleValidateChirp))

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/application"
+	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/database"
 )
@@ -23,13 +24,14 @@ func toRepositoryUser(dbUser database.User) *domain.User {
 	}
 }
 
-func (s *Repository) CreateUser(ctx context.Context, email string) (*domain.User, error) {
+func (s *Repository) CreateUser(ctx context.Context, email, password string) (*domain.User, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	user, err := s.db.CreateUser(ctx, database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: now,
 		UpdatedAt: now,
 		Email:     email,
+		Password:  password,
 	})
 	if err != nil {
 		return nil, mapError(err)
@@ -41,6 +43,18 @@ func (s *Repository) GetUserByEmail(ctx context.Context, email string) (*domain.
 	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, mapError(err)
+	}
+	return toRepositoryUser(user), nil
+}
+
+func (s *Repository) AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error) {
+	user, err := s.db.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, mapError(err)
+	}
+	ok, err := auth.CheckPasswordHash(password, user.Password)
+	if !ok {
+		return nil, domain.ErrUnauthorized
 	}
 	return toRepositoryUser(user), nil
 }

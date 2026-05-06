@@ -30,7 +30,7 @@ func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.
 		UserID:    user.ID,
 	}
 
-	r.chips[id] = chirp
+	r.chirps[id] = chirp
 
 	return &chirp, nil
 }

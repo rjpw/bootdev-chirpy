@@ -12,3 +12,8 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
 }
+
+type UserCredentials struct {
+	ID       uuid.UUID
+	Password string
+}
