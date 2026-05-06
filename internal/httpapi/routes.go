@@ -16,6 +16,9 @@ func (s *Server) registerRoutes() {
 	s.mux.HandleFunc("POST /api/chirps",
 		withValidBody[ChirpParams](s.handleCreateChirp))
 
+	s.mux.HandleFunc("GET /api/chirps", s.handleGetChirps)
+	s.mux.HandleFunc("GET /api/chirps/{chirpID}", s.handleGetChirp)
+
 	s.mux.Handle("/app/",
 		s.Metrics.MiddlewareMetricsInc(
 			http.StripPrefix("/app",

@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -35,6 +36,37 @@ func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	respondWithJSON(w, http.StatusCreated, chirp)
+}
+
+func (s *Server) handleGetChirps(w http.ResponseWriter, r *http.Request) {
+	chirps, err := s.Repositories.Chirps.GetUserChirps(r.Context(), "%")
+	if err != nil {
+		fmt.Printf("Error: %s\n", err.Error())
+		if errors.Is(err, domain.ErrNotFound) {
+			respondWithMessage(w, http.StatusNotFound, err.Error())
+		} else {
+			respondWithMessage(w, http.StatusBadRequest, err.Error())
+		}
+	}
+
+	respondWithJSON(w, http.StatusOK, chirps)
+
+}
+
+func (s *Server) handleGetChirp(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("chirpID")
+	chirp, err := s.Repositories.Chirps.GetChirpByID(r.Context(), id)
+
+	if err != nil {
+		fmt.Printf("Error: %s\n", err.Error())
+		if errors.Is(err, domain.ErrNotFound) {
+			respondWithMessage(w, http.StatusNotFound, err.Error())
+		} else {
+			respondWithMessage(w, http.StatusBadRequest, err.Error())
+		}
+	}
+
+	respondWithJSON(w, http.StatusOK, chirp)
+
 }

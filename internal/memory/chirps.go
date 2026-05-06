@@ -35,6 +35,21 @@ func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.
 	return &chirp, nil
 }
 
+// currently just a stub
+func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domain.Chirp, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	_, err := uuid.Parse(user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	chirps := make([]domain.Chirp, 0, 10)
+	return chirps, nil
+
+}
+
 func (r *Repository) GetChirpByID(ctx context.Context, id string) (*domain.Chirp, error) {
 	return &domain.Chirp{}, nil
 }
