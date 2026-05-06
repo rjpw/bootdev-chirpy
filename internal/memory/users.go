@@ -112,3 +112,12 @@ func (s *Repository) DeleteAllUsers(_ context.Context) error {
 	s.users = make(map[uuid.UUID]domain.User)
 	return nil
 }
+
+// unexported, no locking — caller must hold the lock
+func (r *Repository) getUserByID(id uuid.UUID) (*domain.User, error) {
+	user, ok := r.users[id]
+	if !ok {
+		return nil, domain.ErrNotFound
+	}
+	return &user, nil
+}

@@ -11,8 +11,10 @@ import (
 )
 
 func newTestServer(platform string) *httpapi.Server {
+	repo := memory.NewMemoryRepository()
 	repositories := application.Repositories{
-		Users: memory.NewMemoryRepository(),
+		Users:  repo,
+		Chirps: repo,
 	}
 	return httpapi.NewServer(platform, &application.ServerMetrics{}, &repositories, "./testdata")
 }

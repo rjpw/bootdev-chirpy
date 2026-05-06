@@ -3,10 +3,12 @@ package httpapi_test
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 )
 
@@ -23,30 +25,42 @@ func TestValidateChirpAPI(t *testing.T) {
 		wantCode int
 	}{
 		{name: "empty body", body: "", wantCode: 400},
-		{name: "min body length = 1", body: strings.Repeat("x", 1), wantCode: 200},
-		{name: "max body length = 140", body: strings.Repeat("x", 140), wantCode: 200},
+		{name: "min body length = 1", body: strings.Repeat("x", 1), wantCode: 201},
+		{name: "max body length = 140", body: strings.Repeat("x", 140), wantCode: 201},
 		{name: "oversize body", body: strings.Repeat("x", 141), wantCode: 400},
+	}
+
+	srv := newTestServer("dev")
+
+	// get a user to post with
+	payload := fmt.Sprintf("{\"email\": \"%s\"}", "saul@bettercall.com")
+	req := httptest.NewRequest("POST", "/api/users", strings.NewReader(payload))
+	rep := httptest.NewRecorder()
+	srv.ServeHTTP(rep, req)
+
+	user, err := decodeEntity[domain.User](t, rep.Body.String())
+	if err != nil {
+		t.Fatalf("Could not create user: %s", err.Error())
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			params := httpapi.Parameters{Body: tc.body}
+			params := httpapi.ChirpParams{Body: tc.body, UserID: user.ID}
 			payload, err := json.Marshal(params)
 			if err != nil {
 				t.Fatalf("json.Marshal(params) error: %v", err)
 			}
-			srv := newTestServer("dev")
 
 			r := httptest.NewRequest(
 				"POST",
-				"/api/validate_chirp",
+				"/api/chirps",
 				strings.NewReader(string(payload)),
 			)
 			w := httptest.NewRecorder()
 			srv.ServeHTTP(w, r)
 
 			if w.Code != tc.wantCode {
-				t.Errorf("POST /api/validate_chirp: want status %d, got %d", tc.wantCode, w.Code)
+				t.Errorf("POST /api/chirps: want status %d, got %d", tc.wantCode, w.Code)
 			}
 		})
 	}
@@ -62,58 +76,11 @@ func readTestData(t *testing.T, filename string) string {
 	return string(data)
 }
 
-func TestValidateChirpFilter(t *testing.T) {
-	// Test cases for validating inbound API calls to /api/validate_chirp
-	cases := []struct {
-		name     string
-		body     string
-		reply    string
-		wantCode int
-	}{
-		{
-			name:     "clean message",
-			body:     readTestData(t, "tc_filter_001.json"),
-			reply:    readTestData(t, "tc_filter_001_reply.json"),
-			wantCode: 200,
-		},
-		{
-			name:     "extra element",
-			body:     readTestData(t, "tc_filter_002.json"),
-			reply:    readTestData(t, "tc_filter_002_reply.json"),
-			wantCode: 200,
-		},
-		{
-			name:     "blue streak",
-			body:     readTestData(t, "tc_filter_003.json"),
-			reply:    readTestData(t, "tc_filter_003_reply.json"),
-			wantCode: 200,
-		},
-		{
-			name:     "long lorem ipsum",
-			body:     readTestData(t, "tc_filter_004.json"),
-			reply:    readTestData(t, "tc_filter_004_reply.json"),
-			wantCode: 400,
-		},
+func decodeEntity[T any](t *testing.T, rawData string) (T, error) {
+	t.Helper()
+	var v T
+	if err := json.NewDecoder(strings.NewReader(rawData)).Decode(&v); err != nil {
+		return v, err
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			srv := newTestServer("dev")
-			r := httptest.NewRequest("POST", "/api/validate_chirp", strings.NewReader(tc.body))
-			w := httptest.NewRecorder()
-			srv.ServeHTTP(w, r)
-
-			if w.Code != tc.wantCode {
-				t.Errorf("POST /api/validate_chirp: want status %d, got %d", tc.wantCode, w.Code)
-			}
-
-			if w.Body.String() != tc.reply {
-				t.Errorf(
-					"POST /api/validate_chirp: want body %q, got %q",
-					tc.reply,
-					w.Body.String(),
-				)
-			}
-		})
-	}
+	return v, nil
 }

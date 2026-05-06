@@ -1,66 +1,40 @@
 package httpapi
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
+
+	"github.com/google/uuid"
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
 // struct to receive a JSON api `chirp`
-type Parameters struct {
-	Body string `json:"body"`
+type ChirpParams struct {
+	Body   string    `json:"body"`
+	UserID uuid.UUID `json:"user_id"`
 }
 
-type jsonSuccess struct {
-	CleanedBody string `json:"cleaned_body,omitempty"`
-	Valid       bool   `json:"valid"`
-}
-
-func (p *Parameters) Validate() bool {
+func (p ChirpParams) Validate() error {
 	bodyLen := len(p.Body)
-	return bodyLen > 0 && bodyLen <= 140
+	if bodyLen < 1 || bodyLen > 140 {
+		return errors.New("Chirp body must be between 1 and 140 characters inclusive.")
+	}
+	return nil
 }
 
-func (s *Server) handleValidateChirp(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
+	params := validBody[ChirpParams](r)
+	cleaned := domain.FilterChirp(params.Body)
 
-	decoder := json.NewDecoder(r.Body)
-	var decoded Parameters
-	if err := decoder.Decode(&decoded); err != nil {
-		s.respondWithJSON(w, http.StatusBadRequest, jsonError{Error: err.Error()})
-		return
-	}
-
-	if !decoded.Validate() {
-		s.respondWithJSON(
-			w,
-			http.StatusBadRequest,
-			jsonError{Error: "chirp body must be between 1 and 140 characters"},
-		)
-		return
-	}
-
-	s.respondWithJSON(
-		w,
-		http.StatusOK,
-		jsonSuccess{CleanedBody: filterChirp(decoded.Body), Valid: true},
-	)
-}
-
-func filterChirp(body string) string {
-	badwords := []string{"sharbert", "kerfuffle", "fornax"}
-
-	lowerBody := strings.ToLower(body)
-	upperWords := strings.Split(body, " ")
-	words := strings.Split(lowerBody, " ")
-
-	for _, badword := range badwords {
-		for i, word := range words {
-			if word == badword {
-				upperWords[i] = "****"
-			}
+	chirp, err := s.Repositories.Chirps.CreateChirp(r.Context(), cleaned, params.UserID)
+	if err != nil {
+		if errors.Is(err, domain.ErrConflict) {
+			respondWithMessage(w, http.StatusConflict, "Chirp already exists")
+		} else {
+			respondWithMessage(w, http.StatusBadRequest, err.Error())
 		}
 	}
 
-	return strings.Join(upperWords, " ")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	respondWithJSON(w, http.StatusCreated, chirp)
 }

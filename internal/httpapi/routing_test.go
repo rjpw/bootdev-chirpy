@@ -21,11 +21,8 @@ func TestMethodResponseCodes(t *testing.T) {
 		{"POST", "/api/healthz", 405, ""},
 		{"GET", "/admin/reset", 405, ""},
 		{"POST", "/admin/reset", 200, ""}, // forbidden in production, but 200 in platform "dev"
-		{"GET", "/api/validate_chirp", 405, ""},
-		{"PUT", "/api/validate_chirp", 405, ""},
-		{"POST", "/api/validate_chirp", 200, "{\"body\":\"hello world\"}"},
-		{"POST", "/api/validate_chirp", 400, "{body: \"hello world\"}"},
-		{"POST", "/api/validate_chirp", 400, "{}"},
+		{"GET", "/api/chirps", 405, ""},
+		{"PUT", "/api/chirps", 405, ""},
 	}
 	for _, tc := range cases {
 		srv := newTestServer("dev")
@@ -50,7 +47,7 @@ func TestContentType(t *testing.T) {
 		{"POST", "/admin/reset", "text/plain; charset=utf-8", ""},
 		{
 			"POST",
-			"/api/validate_chirp",
+			"/api/chirps",
 			"application/json; charset=utf-8",
 			"{body: \"hello world\"}",
 		},

@@ -53,7 +53,7 @@ func NewServer(env application.Environment, staticPath string) (*Server, error) 
 
 	repos := &application.Repositories{
 		Users:  repo,
-		Chirps: nil,
+		Chirps: repo,
 	}
 	metrics := &application.ServerMetrics{}
 	handler := httpapi.NewServer(env.Platform, metrics, repos, staticPath)

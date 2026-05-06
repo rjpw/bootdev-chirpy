@@ -21,12 +21,12 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	user, err := s.Repositories.Users.CreateUser(r.Context(), email)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
-			s.respondWithMessage(w, http.StatusConflict, "User already exists")
+			respondWithMessage(w, http.StatusConflict, "User already exists")
 		} else {
-			s.respondWithMessage(w, http.StatusBadRequest, err.Error())
+			respondWithMessage(w, http.StatusBadRequest, err.Error())
 		}
 		return
 	}
 
-	s.respondWithJSON(w, http.StatusCreated, user)
+	respondWithJSON(w, http.StatusCreated, user)
 }

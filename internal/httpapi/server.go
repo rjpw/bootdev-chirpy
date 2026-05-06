@@ -40,18 +40,18 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func (s *Server) respondWithJSON(w http.ResponseWriter, statusCode int, payload any) {
+func respondWithJSON(w http.ResponseWriter, statusCode int, payload any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(statusCode)
 	data, err := json.Marshal(payload)
 	if err != nil {
-		s.respondWithMessage(w, 500, "unexpected server error")
+		respondWithMessage(w, 500, "unexpected server error")
 		return
 	}
 	fmt.Fprintf(w, "%s", string(data))
 }
 
-func (s *Server) respondWithMessage(w http.ResponseWriter, statusCode int, message string) {
+func respondWithMessage(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, "%s", message)
@@ -61,7 +61,7 @@ func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
 	// require server config platform to be "dev" to allow reset,
 	// otherwise return 403 Forbidden
 	if s.Platform != "dev" {
-		s.respondWithMessage(
+		respondWithMessage(
 			w,
 			http.StatusForbidden,
 			"Forbidden: reset is only allowed in dev environment",
@@ -70,10 +70,10 @@ func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
 		s.Metrics.Reset()
 		err := s.Repositories.Users.DeleteAllUsers(context.Background())
 		if err != nil {
-			s.respondWithMessage(w, http.StatusInternalServerError, "Failed to delete all users")
+			respondWithMessage(w, http.StatusInternalServerError, "Failed to delete all users")
 			return
 		}
-		s.respondWithMessage(
+		respondWithMessage(
 			w,
 			http.StatusOK,
 			fmt.Sprintf("Hits: %d", s.Metrics.FileserverHits()),

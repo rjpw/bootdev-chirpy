@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
@@ -23,7 +24,7 @@ type Repositories struct {
 }
 
 type ChirpRepository interface {
-	CreateChirp(ctx context.Context, body string) (*domain.Chirp, error)
+	CreateChirp(ctx context.Context, body string, user_id uuid.UUID) (*domain.Chirp, error)
 	GetChirpByID(ctx context.Context, id string) (*domain.Chirp, error)
 	DeleteChirp(ctx context.Context, id string) error
 	DeleteAllChirps(ctx context.Context, user_id string) error
