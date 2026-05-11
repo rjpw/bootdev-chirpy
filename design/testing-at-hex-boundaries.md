@@ -68,7 +68,7 @@ The hex architecture's value is in its constraints. Tests that ignore the bounda
 
 ```go
 func TestCreateUser(t *testing.T) {
-    s := newTestServer("dev")
+    s := newTestServer()
     user, err := s.CreateUser(ctx, email)  // ← domain call, not HTTP
     // asserts on *domain.User and domain.ErrConflict
 }
@@ -80,7 +80,7 @@ func TestCreateUser(t *testing.T) {
 
 ```go
 func TestCreateUser(t *testing.T) {
-    srv := newTestServer("dev")
+    srv := newTestServer()
     body := `{"email": "test@example.com"}`
     r := httptest.NewRequest("POST", "/api/users", strings.NewReader(body))
     w := httptest.NewRecorder()
@@ -93,7 +93,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserConflict(t *testing.T) {
-    srv := newTestServer("dev")
+    srv := newTestServer()
     body := `{"email": "test@example.com"}`
 
     // first request succeeds

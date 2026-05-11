@@ -10,13 +10,20 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/memory"
 )
 
-func newTestServer(platform string) *httpapi.Server {
+func newTestServer() *httpapi.Server {
+	// note: this loads internal/httpapi/testdata/.env
+	env := application.LoadEnvironment()
+
 	repo := memory.NewMemoryRepository()
 	repositories := application.Repositories{
 		Users:  repo,
 		Chirps: repo,
 	}
-	return httpapi.NewServer(platform, &application.ServerMetrics{}, &repositories, "./testdata")
+	return httpapi.NewServer(
+		env,
+		&application.ServerMetrics{},
+		&repositories,
+		"./testdata")
 }
 
 func parseHitCount(t *testing.T, body string) int {

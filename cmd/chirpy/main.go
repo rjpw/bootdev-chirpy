@@ -7,13 +7,12 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/joho/godotenv"
 	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/config"
 )
 
 func main() {
-	env := loadEnvironment()
+	env := application.LoadEnvironment()
 
 	var runnable application.Runnable
 
@@ -46,15 +45,4 @@ func main() {
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-}
-
-func loadEnvironment() application.Environment {
-	if err := godotenv.Load(); err != nil {
-		log.Printf("No .env file found: %v", err)
-	}
-	return application.Environment{
-		DBName:   os.Getenv("DBNAME"),
-		DBURL:    os.Getenv("DB_URL"),
-		Platform: os.Getenv("PLATFORM"),
-	}
 }

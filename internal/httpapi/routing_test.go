@@ -24,7 +24,7 @@ func TestMethodResponseCodes(t *testing.T) {
 		{"PUT", "/api/chirps", 405, ""},
 	}
 	for _, tc := range cases {
-		srv := newTestServer("dev")
+		srv := newTestServer()
 		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(string(tc.body)))
 		w := httptest.NewRecorder()
 		srv.ServeHTTP(w, r)
@@ -52,7 +52,7 @@ func TestContentType(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		srv := newTestServer("dev")
+		srv := newTestServer()
 		r := httptest.NewRequest(tc.method, tc.path, nil)
 		w := httptest.NewRecorder()
 		srv.ServeHTTP(w, r)

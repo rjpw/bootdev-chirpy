@@ -9,19 +9,19 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
-	"github.com/rjpw/bootdev-chirpy/internal/memory"
 	"github.com/rjpw/bootdev-chirpy/internal/operations"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres"
 	"github.com/rjpw/bootdev-chirpy/internal/postgres/schema"
 )
 
-// Server
+// ----------------  Server ----------------
 
 var _ application.Runnable = (*Server)(nil)
 
 type Server struct {
 	httpServer *http.Server
 	close      func() error
+	SecretKey  string
 }
 
 func (s *Server) Handler() http.Handler { return s.httpServer.Handler }
@@ -56,7 +56,7 @@ func NewServer(env application.Environment, staticPath string) (*Server, error) 
 		Chirps: repo,
 	}
 	metrics := &application.ServerMetrics{}
-	handler := httpapi.NewServer(env.Platform, metrics, repos, staticPath)
+	handler := httpapi.NewServer(env, metrics, repos, staticPath)
 
 	return &Server{
 		httpServer: &http.Server{
@@ -64,23 +64,12 @@ func NewServer(env application.Environment, staticPath string) (*Server, error) 
 			Handler:           handler,
 			ReadHeaderTimeout: 30 * time.Second,
 		},
-		close: db.Close,
+		SecretKey: env.SecretKey,
+		close:     db.Close,
 	}, nil
 }
 
-func NewTestServer() *Server {
-	repos := &application.Repositories{
-		Users: memory.NewMemoryRepository(),
-	}
-	metrics := &application.ServerMetrics{}
-	handler := httpapi.NewServer("dev", metrics, repos, "./root")
-
-	return &Server{
-		httpServer: &http.Server{Handler: handler},
-	}
-}
-
-// Migrator
+// ----------------  Migrator ----------------
 
 func NewMigrator(env application.Environment, command string) (*operations.Migrator, error) {
 	db, err := postgres.Open(env.DBURL)

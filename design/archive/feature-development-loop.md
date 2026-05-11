@@ -47,7 +47,7 @@ Start from the requirement. Express it as an HTTP test:
 
 ```go
 func TestCreateChirp(t *testing.T) {
-    srv := newTestServer("dev")
+    srv := newTestServer()
 
     body := `{"body": "hello world"}`
     r := httptest.NewRequest("POST", "/api/chirps", strings.NewReader(body))

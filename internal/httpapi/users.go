@@ -5,23 +5,27 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
+// struct to receive a JSON api `chirp`
+type UserParams struct {
+	Email            string `json:"email"`
+	Password         string `json:"password"`
+	ExpiresInSeconds int    `json:"expires_in_seconds"`
+}
+
 func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	// email is a field in JSON body, so we need to parse the JSON body to get the email
-	var payload struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+	var params UserParams
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
 		return
 	}
-	email := payload.Email
-	hashedPassword, err := auth.HashPassword(payload.Password)
+	email := params.Email
+	hashedPassword, err := auth.HashPassword(params.Password)
 	user, err := s.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
@@ -36,18 +40,14 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
-	// email is a field in JSON body, so we need to parse the JSON body to get the email
-	var payload struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+	var params UserParams
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
 		return
 	}
 
 	user, err := s.Repositories.Users.AuthenticateUser(
-		r.Context(), payload.Email, payload.Password)
+		r.Context(), params.Email, params.Password)
 	if err != nil {
 		fmt.Printf("User authentication error: %v\n", err)
 		if errors.Is(err, domain.ErrNotFound) {
@@ -57,6 +57,16 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	// choose the minimum of 3600 seconds and the user's requested expires_in_seconds
+	minExpiry := 3600
+	if params.ExpiresInSeconds > 0 && params.ExpiresInSeconds < minExpiry {
+		minExpiry = params.ExpiresInSeconds
+	}
+
+	// generate a token and attach to the user object
+	token, err := auth.MakeJWT(user.ID, s.environment.SecretKey, time.Duration(minExpiry)*time.Second)
+	user.Token = token
 
 	respondWithJSON(w, http.StatusOK, user)
 }

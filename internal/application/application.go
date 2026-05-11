@@ -2,8 +2,11 @@ package application
 
 import (
 	"context"
+	"log"
+	"os"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
@@ -13,9 +16,10 @@ type Runnable interface {
 }
 
 type Environment struct {
-	DBName   string
-	DBURL    string
-	Platform string
+	DBName    string
+	DBURL     string
+	Platform  string
+	SecretKey string
 }
 
 type Repositories struct {
@@ -39,4 +43,16 @@ type UserRepository interface {
 	UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error
 	DeleteUser(ctx context.Context, email string) error
 	DeleteAllUsers(ctx context.Context) error
+}
+
+func LoadEnvironment() Environment {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found: %v", err)
+	}
+	return Environment{
+		DBName:    os.Getenv("DBNAME"),
+		DBURL:     os.Getenv("DB_URL"),
+		Platform:  os.Getenv("PLATFORM"),
+		SecretKey: os.Getenv("HS256_KEY"),
+	}
 }

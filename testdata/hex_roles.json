@@ -1,6 +1,7 @@
 {
   "internal/domain":      "domain",
   "internal/application": "application",
+  "internal/auth":        "application",
   "internal/metrics":     "application",
   "internal/httpapi":     "adapter",
   "internal/memory":      "adapter",

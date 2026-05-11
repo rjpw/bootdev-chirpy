@@ -30,7 +30,7 @@ func TestValidateChirpAPI(t *testing.T) {
 		{name: "oversize body", body: strings.Repeat("x", 141), wantCode: 400},
 	}
 
-	srv := newTestServer("dev")
+	srv := newTestServer()
 
 	// get a user to post with
 	payload := fmt.Sprintf("{\"email\": \"%s\"}", "saul@bettercall.com")

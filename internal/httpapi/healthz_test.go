@@ -7,7 +7,7 @@ import (
 )
 
 func TestHealthz(t *testing.T) {
-	srv := newTestServer("dev")
+	srv := newTestServer()
 	r := httptest.NewRequest("GET", "/api/healthz", nil)
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, r)

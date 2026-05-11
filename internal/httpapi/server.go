@@ -12,6 +12,7 @@ import (
 type Server struct {
 	mux          *http.ServeMux
 	staticPath   string
+	environment  application.Environment
 	Platform     string
 	Metrics      *application.ServerMetrics
 	Repositories *application.Repositories
@@ -21,14 +22,14 @@ type jsonError struct {
 	Error string `json:"error"`
 }
 
-func NewServer(platform string,
+func NewServer(environment application.Environment,
 	metrics *application.ServerMetrics,
 	repositories *application.Repositories,
 	staticPath string) *Server {
 	s := &Server{
 		mux:          http.NewServeMux(),
 		staticPath:   staticPath,
-		Platform:     platform,
+		environment:  environment,
 		Metrics:      metrics,
 		Repositories: repositories,
 	}
@@ -60,7 +61,7 @@ func respondWithMessage(w http.ResponseWriter, statusCode int, message string) {
 func (s *Server) handleReset(w http.ResponseWriter, _ *http.Request) {
 	// require server config platform to be "dev" to allow reset,
 	// otherwise return 403 Forbidden
-	if s.Platform != "dev" {
+	if s.environment.Platform != "dev" {
 		respondWithMessage(
 			w,
 			http.StatusForbidden,
