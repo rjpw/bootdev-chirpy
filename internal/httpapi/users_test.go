@@ -15,6 +15,26 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 )
 
+func marshalEntity[T any](t *testing.T, params T) string {
+	b, err := json.Marshal(params)
+	if err != nil {
+		t.Errorf("Error creating user to post: %v", err)
+	}
+	return string(b)
+}
+
+func getUserPayload(t *testing.T, email, password string) string {
+	t.Helper()
+	params := httpapi.UserParams{Email: email, Password: password}
+	return marshalEntity(t, params)
+}
+
+func getChirpPayload(t *testing.T, body string) string {
+	t.Helper()
+	params := httpapi.ChirpParams{Body: body}
+	return marshalEntity(t, params)
+}
+
 func TestUserFromRawString(t *testing.T) {
 	cases := []struct {
 		name         string
@@ -238,7 +258,9 @@ func TestLoginProducesToken(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		payload := fmt.Sprintf("{\"password\": \"%s\", \"email\": \"%s\"}", tc.password, tc.email)
+
+		payload := getUserPayload(t, tc.email, tc.password)
+
 		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(payload))
 		w := httptest.NewRecorder()
 
@@ -269,137 +291,103 @@ func TestLoginProducesToken(t *testing.T) {
 	}
 }
 
-func _TestMITMTokenTheftScenario(t *testing.T) {
+func TestMITMTokenTheftScenario(t *testing.T) {
 	srv := newTestServer()
 
 	cases := []struct {
 		name          string
-		method        string
 		path          string
 		email         string
-		password      string
-		chirpBody     string
 		mitmAttempted bool
 		responseCode  int
 	}{
 		{
 			"create user saul",
-			"POST",
 			"/api/users",
 			"saul@bettercall.com",
-			"123456",
-			"",
 			false,
 			http.StatusCreated,
 		},
 		{
 			"create user mike",
-			"POST",
 			"/api/users",
 			"mike@bettercall.com",
-			"987654",
-			"",
 			false,
 			http.StatusCreated,
 		},
 		{
-			"login with correct password",
-			"POST",
+			"saul logs in",
 			"/api/login",
 			"saul@bettercall.com",
-			"123456",
-			"",
 			false,
 			http.StatusOK,
 		},
 		{
-			"login with incorrect password",
-			"POST",
+			"mike logs in",
 			"/api/login",
-			"saul@bettercall.com",
-			"000111222",
-			"",
+			"mike@bettercall.com",
 			false,
-			http.StatusUnauthorized,
+			http.StatusOK,
 		},
 		{
 			"saul chirps as saul",
-			"POST",
-			"/api/chirp",
+			"/api/chirps",
 			"saul@bettercall.com",
-			"123456",
-			"Yo Adrian, Rocky called… he wants his face back!",
 			false,
-			http.StatusOK,
+			http.StatusCreated,
 		},
 		{
 			"mike chirps as mike",
-			"POST",
-			"/api/chirp",
+			"/api/chirps",
 			"mike@bettercall.com",
-			"123456",
-			"You can be on one side of the law or the other, but if you make a deal with somebody, you keep your word.",
 			false,
-			http.StatusOK,
+			http.StatusCreated,
 		},
-		{
-			"saul chirps as mike",
-			"POST",
-			"/api/chirp",
-			"mike@bettercall.com",
-			"123456",
-			"Is this thing on?",
-			true,
-			http.StatusOK, // this should succeed in lesson 7 and fail when we fix it later
-		},
+		// {
+		// 	"saul chirps as mike",
+		// 	"/api/chirps",
+		// 	"mitm@sneaky.com",
+		// 	true,
+		// 	http.StatusCreated, // this should succeed in lesson 7 and fail when we fix it later
+		// },
 	}
 
 	tokenCache := make(map[string]string)
 	userCache := make(map[string]domain.User)
 
+	// reset the server for good measure
+	r := httptest.NewRequest(http.MethodPost, "/admin/reset", strings.NewReader(""))
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, r)
+
 	for _, tc := range cases {
 
-		var payload string
-		var user domain.User
+		var r *http.Request
 
 		switch tc.path {
+		case "/api/users":
+			fallthrough
 		case "/api/login":
-			params := httpapi.UserParams{Email: tc.email, Password: tc.password}
-			b, err := json.Marshal(params)
-			if err != nil {
-				t.Errorf("Error creating user to post: %v", err)
-			} else {
-				payload = string(b)
-				fmt.Printf("User to POST: %s\n", payload)
-			}
+			r = httptest.NewRequest(http.MethodPost, tc.path, getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)))
 		case "/api/chirps":
-			if tc.mitmAttempted && tc.email == "" {
-				user = userCache[tc.email]
-			}
-			params := httpapi.ChirpParams{Body: tc.chirpBody, UserID: user.ID}
-			b, err := json.Marshal(params)
-			if err != nil {
-				t.Errorf("Error creating chirp: %v", err)
-			} else {
-				payload = string(b)
-				fmt.Printf("Chirp to POST: %s\n", payload)
-			}
+			r = httptest.NewRequest(http.MethodPost, tc.path, getFileReader(t, fmt.Sprintf("ChirpParams_%s.json", tc.email)))
+			r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", tokenCache[tc.email]))
 		}
 
-		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(payload))
 		w := httptest.NewRecorder()
-
 		srv.ServeHTTP(w, r)
 
 		// keep tokens for later MITM attempt by Saul
-		if w.Code == http.StatusOK && tc.path == "/api/login" {
+		if tc.path == "/api/login" && w.Code == http.StatusOK {
 			user, _ := decodeEntity[domain.User](t, w.Body.String())
+			fmt.Printf("Retaining user %v for later use ...\n", user)
 			tokenCache[tc.email] = user.Token
 			userCache[tc.email] = user
 		}
 
 		// expect rejection on bad password
 		if w.Code != tc.responseCode {
+			fmt.Printf("\n\nResponse Body: %s\n\n", w.Body.String())
 			t.Errorf("%s -- %s -- Expected response code %d, got %d", tc.name, tc.path, tc.responseCode, w.Code)
 		}
 

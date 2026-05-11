@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
+	// "github.com/google/uuid"
+	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
 // struct to receive a JSON api `chirp`
 type ChirpParams struct {
-	Body   string    `json:"body"`
-	UserID uuid.UUID `json:"user_id"`
+	Body string `json:"body"`
+	// UserID uuid.UUID `json:"user_id"`
 }
 
 func (p ChirpParams) Validate() error {
@@ -25,9 +26,22 @@ func (p ChirpParams) Validate() error {
 
 func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	params := validBody[ChirpParams](r)
+
+	// TODO: see if we can rely on the middleware, and simply remove this as redundant
 	cleaned := domain.FilterChirp(params.Body)
 
-	chirp, err := s.Repositories.Chirps.CreateChirp(r.Context(), cleaned, params.UserID)
+	// TODO: make this middleware
+	// get the user ID from the bearer token
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, err.Error())
+	}
+	userID, err := auth.ValidateJWT(token, s.environment.SecretKey)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, err.Error())
+	}
+
+	chirp, err := s.Repositories.Chirps.CreateChirp(r.Context(), cleaned, userID)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
 			respondWithMessage(w, http.StatusConflict, "Chirp already exists")

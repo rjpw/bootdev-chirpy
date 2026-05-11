@@ -1,14 +1,24 @@
 package httpapi_test
 
 import (
+	"embed"
+	"encoding/json"
+	"fmt"
+	"io/fs"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 	"github.com/rjpw/bootdev-chirpy/internal/memory"
 )
+
+// Define and initialize testdataFS
+//
+//go:embed testdata/*
+var testdataFS embed.FS
 
 func newTestServer() *httpapi.Server {
 	// note: this loads internal/httpapi/testdata/.env
@@ -38,4 +48,40 @@ func parseHitCount(t *testing.T, body string) int {
 		t.Fatalf("could not parse hit count: %v", err)
 	}
 	return count
+}
+
+// function to read raw test data from `internal/api/testdata` and return as a string
+func getTestData[T any](t *testing.T, name string) (T, error) {
+	t.Helper()
+
+	file, err := testdataFS.Open(name)
+	if err != nil {
+		t.Fatalf("testdataFS.Open(%q) error: %v", name, err)
+	}
+
+	var v T
+	if err := json.NewDecoder(file).Decode(&v); err != nil {
+		return v, err
+	}
+	return v, nil
+}
+
+func decodeEntity[T any](t *testing.T, rawData string) (T, error) {
+	t.Helper()
+	var v T
+	if err := json.NewDecoder(strings.NewReader(rawData)).Decode(&v); err != nil {
+		return v, err
+	}
+	return v, nil
+}
+
+func getFileReader(t *testing.T, filename string) fs.File {
+	t.Helper()
+
+	file, err := testdataFS.Open(fmt.Sprintf("testdata/%s", filename))
+	if err != nil {
+		t.Fatalf("testdataFS.Open(%q) error: %v", filename, err)
+	}
+	return file
+
 }
