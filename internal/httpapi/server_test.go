@@ -50,22 +50,6 @@ func parseHitCount(t *testing.T, body string) int {
 	return count
 }
 
-// function to read raw test data from `internal/api/testdata` and return as a string
-func getTestData[T any](t *testing.T, name string) (T, error) {
-	t.Helper()
-
-	file, err := testdataFS.Open(name)
-	if err != nil {
-		t.Fatalf("testdataFS.Open(%q) error: %v", name, err)
-	}
-
-	var v T
-	if err := json.NewDecoder(file).Decode(&v); err != nil {
-		return v, err
-	}
-	return v, nil
-}
-
 func decodeEntity[T any](t *testing.T, rawData string) (T, error) {
 	t.Helper()
 	var v T
