@@ -79,13 +79,18 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithMessage(w, http.StatusInternalServerError, "Server error creating JWT")
 	}
 
+	session, err := s.Repositories.UserSessions.CreateSession(r.Context(), user.ID)
+	if err != nil {
+		respondWithMessage(w, http.StatusInternalServerError, "Server error creating User Session")
+	}
+
 	loginReply := PostLoginReply{
 		ID:          user.ID,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
 		Email:       user.Email,
 		AccessToken: token,
-		SessionID:   "", // nothing just yet
+		SessionID:   session.ID,
 	}
 
 	respondWithJSON(w, http.StatusOK, loginReply)

@@ -14,7 +14,7 @@ type Repository struct {
 	mu              sync.RWMutex
 	users           map[uuid.UUID]domain.User
 	userCredentials map[uuid.UUID]domain.UserCredentials
-	userSessions    map[uuid.UUID]domain.UserSession
+	userSessions    map[string]domain.UserSession
 	chirps          map[uuid.UUID]domain.Chirp
 }
 
@@ -22,7 +22,7 @@ func NewMemoryRepository() *Repository {
 	return &Repository{
 		users:           make(map[uuid.UUID]domain.User),
 		userCredentials: make(map[uuid.UUID]domain.UserCredentials),
-		userSessions:    make(map[uuid.UUID]domain.UserSession),
+		userSessions:    make(map[string]domain.UserSession),
 		chirps:          make(map[uuid.UUID]domain.Chirp),
 	}
 }

@@ -26,8 +26,9 @@ func newTestServer() *httpapi.Server {
 
 	repo := memory.NewMemoryRepository()
 	repositories := application.Repositories{
-		Users:  repo,
-		Chirps: repo,
+		Users:        repo,
+		UserSessions: repo,
+		Chirps:       repo,
 	}
 	return httpapi.NewServer(
 		env,
