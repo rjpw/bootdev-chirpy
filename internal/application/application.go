@@ -23,8 +23,9 @@ type Environment struct {
 }
 
 type Repositories struct {
-	Users  UserRepository
-	Chirps ChirpRepository
+	Users        UserRepository
+	UserSessions UserSessionRepository
+	Chirps       ChirpRepository
 }
 
 type ChirpRepository interface {
@@ -43,6 +44,13 @@ type UserRepository interface {
 	UpdateUserEmail(ctx context.Context, oldEmail, newEmail string) error
 	DeleteUser(ctx context.Context, email string) error
 	DeleteAllUsers(ctx context.Context) error
+}
+
+type UserSessionRepository interface {
+	CreateSession(ctx context.Context, user_id uuid.UUID) (*domain.UserSession, error)
+	GetSession(ctx context.Context, id string) (*domain.UserSession, error)
+	RevokeSession(ctx context.Context, id string) error
+	DeleteSessionsByUserID(ctx context.Context, user_id uuid.UUID) error
 }
 
 func LoadEnvironment() Environment {
