@@ -448,6 +448,18 @@ func TestTokenRefreshScenarios(t *testing.T) {
 			"saul@bettercall.com",
 			http.StatusCreated,
 		},
+		{
+			"user revokes refresh token",
+			"/api/revoke",
+			"mike@bettercall.com",
+			http.StatusOK,
+		},
+		{
+			"revoked token refresh",
+			"/api/refresh",
+			"mike@bettercall.com",
+			http.StatusNotFound,
+		},
 	}
 
 	cachedRefreshToken := ""
@@ -470,6 +482,27 @@ func TestTokenRefreshScenarios(t *testing.T) {
 				t.Errorf("%s -- Error logging in: %s", tc.name, w.Body.String())
 			}
 		case "/api/refresh":
+			if len(cachedRefreshToken) == 0 {
+				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
+			} else {
+				fmt.Printf("Using refresh token: %s ...\n", cachedRefreshToken[:8])
+			}
+			r = httptest.NewRequest(http.MethodPost, tc.path, strings.NewReader(""))
+			r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", cachedRefreshToken))
+			w := httptest.NewRecorder()
+			srv.ServeHTTP(w, r)
+
+			if w.Code == http.StatusOK {
+
+				rt, err := decodeEntity[httpapi.SessionRefreshResponse](t, w.Body.String())
+				if err != nil {
+					t.Errorf("%s -- Error getting refresh token from header: %v", tc.name, err)
+				} else {
+					cachedRefreshToken = rt.AccessToken
+				}
+			}
+
+		case "/api/revoke":
 			if len(cachedRefreshToken) == 0 {
 				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
 			} else {

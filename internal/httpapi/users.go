@@ -130,3 +130,20 @@ func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, refreshTokenResponse)
 
 }
+
+func (s *Server) handleSessionRevoke(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := auth.GetRefreshToken(r.Header)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot retrieve refresh token: %s", err).Error())
+		return
+	}
+
+	err = s.Repositories.UserSessions.RevokeSession(r.Context(), refreshToken)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot revoke session: %s", err).Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+
+}
