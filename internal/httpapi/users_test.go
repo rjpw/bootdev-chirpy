@@ -261,8 +261,8 @@ func TestLoginProducesToken(t *testing.T) {
 		srv.ServeHTTP(w, r)
 		if tc.path == "/api/login" {
 
-			var user httpapi.PostLoginReply
-			err := json.NewDecoder(strings.NewReader(w.Body.String())).Decode(&user)
+			var loginReply httpapi.PostLoginReply
+			err := json.NewDecoder(strings.NewReader(w.Body.String())).Decode(&loginReply)
 
 			// if login returned OK we expect a user with a good token
 			if w.Code == http.StatusOK {
@@ -270,13 +270,15 @@ func TestLoginProducesToken(t *testing.T) {
 				if err != nil {
 					t.Errorf("%s -- Error decoding user %v", tc.name, err)
 					continue
-				} else if len(user.AccessToken) == 0 {
-					t.Errorf("%s -- Expecting a populated token and got none", tc.name)
+				} else if len(loginReply.AccessToken) == 0 {
+					t.Errorf("%s -- Expecting an access token and got none", tc.name)
+				} else if len(loginReply.SessionID) == 0 {
+					t.Errorf("%s -- Expecting a refresh token and got none", tc.name)
 				}
 
 			} else {
-				if err == nil && len(user.AccessToken) > 0 {
-					t.Errorf("%s -- Expecting no token and got %s", tc.name, user.AccessToken)
+				if err == nil && len(loginReply.AccessToken) > 0 {
+					t.Errorf("%s -- Expecting no token and got %s", tc.name, loginReply.AccessToken)
 				}
 			}
 
