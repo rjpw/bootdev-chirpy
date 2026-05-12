@@ -34,11 +34,11 @@ func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	// get the user ID from the bearer token
 	token, err := auth.GetAccessToken(r.Header)
 	if err != nil {
-		respondWithMessage(w, http.StatusBadRequest, err.Error())
+		respondWithMessage(w, http.StatusUnauthorized, err.Error())
 	}
 	userID, err := auth.ValidateJWT(token, s.environment.SecretKey)
 	if err != nil {
-		respondWithMessage(w, http.StatusBadRequest, err.Error())
+		respondWithMessage(w, http.StatusUnauthorized, err.Error())
 	}
 
 	chirp, err := s.Repositories.Chirps.CreateChirp(r.Context(), cleaned, userID)

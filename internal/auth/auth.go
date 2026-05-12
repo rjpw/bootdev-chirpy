@@ -13,14 +13,14 @@ import (
 	"github.com/google/uuid"
 )
 
-const refreshTokenLength = 256
+const refreshTokenLength = 128
 
 func GetAccessToken(headers http.Header) (string, error) {
 	return getTokenByRegex(headers, `^Bearer\s+([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)$`)
 }
 
 func GetRefreshToken(headers http.Header) (string, error) {
-	pattern := fmt.Sprintf("^Bearer\\s+([a-fA-F0-9]{%d})$", refreshTokenLength)
+	pattern := fmt.Sprintf("^Bearer\\s+([a-fA-F0-9]{%d})$", refreshTokenLength*2)
 	return getTokenByRegex(headers, pattern)
 }
 

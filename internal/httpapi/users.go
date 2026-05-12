@@ -50,7 +50,14 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, user)
+	createUserResponse := PostLoginResponse{
+		ID:        user.ID,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Email:     user.Email,
+	}
+
+	respondWithJSON(w, http.StatusCreated, createUserResponse)
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -117,6 +124,11 @@ func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 
 	if session.ExpiresAt.Before(time.Now()) {
 		respondWithMessage(w, http.StatusUnauthorized, "Session token has expired. Please re-authenticate.")
+		return
+	}
+
+	if !session.RevokedAt.IsZero() {
+		respondWithMessage(w, http.StatusUnauthorized, "Session token was revoked. Please re-authenticate.")
 		return
 	}
 
