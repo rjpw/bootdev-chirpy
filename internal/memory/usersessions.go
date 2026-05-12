@@ -57,6 +57,7 @@ func (r *Repository) RevokeSession(ctx context.Context, id string) error {
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	session.RevokedAt = now
+	session.UpdatedAt = now
 
 	return nil
 }
