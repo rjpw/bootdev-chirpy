@@ -16,6 +16,7 @@ type Chirp struct {
 }
 
 func FilterChirp(body string) string {
+	// TODO: make this configurable
 	badwords := []string{"sharbert", "kerfuffle", "fornax"}
 
 	lowerBody := strings.ToLower(body)
@@ -30,5 +31,14 @@ func FilterChirp(body string) string {
 		}
 	}
 
-	return strings.Join(upperWords, " ")
+	return truncateChirp(strings.Join(upperWords, " "), 140)
+}
+
+// The method of truncation isn't terribly opinionated, but it does allow for UTF8 multi-byte runes.
+func truncateChirp(s string, maxLength int) string {
+	r := []rune(s)
+	if len(r) > maxLength {
+		return string(r[:maxLength])
+	}
+	return s
 }
