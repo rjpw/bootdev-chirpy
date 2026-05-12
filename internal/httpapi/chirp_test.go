@@ -35,7 +35,7 @@ func TestValidateChirpAPI(t *testing.T) {
 	rep = httptest.NewRecorder()
 	srv.ServeHTTP(rep, req)
 
-	user, err := decodeEntity[httpapi.PostLoginReply](t, rep.Body.String())
+	user, err := decodeEntity[httpapi.PostLoginResponse](t, rep.Body.String())
 	if err != nil {
 		t.Fatalf("Could not create user: %s", err.Error())
 	} else {

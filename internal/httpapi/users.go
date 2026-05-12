@@ -19,13 +19,17 @@ type PostLoginRequest struct {
 	ExpiresInSeconds int    `json:"expires_in_seconds"`
 }
 
-type PostLoginReply struct {
+type PostLoginResponse struct {
 	ID          uuid.UUID `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Email       string    `json:"email"`
 	AccessToken string    `json:"token"`
 	SessionID   string    `json:"refresh_token"`
+}
+
+type SessionRefreshResponse struct {
+	AccessToken string `json:"token"`
 }
 
 func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +88,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithMessage(w, http.StatusInternalServerError, "Server error creating User Session")
 	}
 
-	loginReply := PostLoginReply{
+	loginReply := PostLoginResponse{
 		ID:          user.ID,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
@@ -94,4 +98,8 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, loginReply)
+}
+
+func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
+
 }
