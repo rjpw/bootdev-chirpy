@@ -12,14 +12,14 @@ import (
 )
 
 // struct to receive a JSON api `chirp`
-type UserParams struct {
+type PostLoginRequest struct {
 	Email            string `json:"email"`
 	Password         string `json:"password"`
 	ExpiresInSeconds int    `json:"expires_in_seconds"`
 }
 
 func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	var params UserParams
+	var params PostLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
 		return
@@ -40,7 +40,7 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
-	var params UserParams
+	var params PostLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
 		return

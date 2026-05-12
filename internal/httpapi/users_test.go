@@ -25,7 +25,7 @@ func marshalEntity[T any](t *testing.T, params T) string {
 
 func getUserPayload(t *testing.T, email, password string) string {
 	t.Helper()
-	params := httpapi.UserParams{Email: email, Password: password}
+	params := httpapi.PostLoginRequest{Email: email, Password: password}
 	return marshalEntity(t, params)
 }
 
@@ -123,7 +123,7 @@ func TestUserFromParams(t *testing.T) {
 	for _, tc := range cases {
 		srv := newTestServer()
 
-		params := httpapi.UserParams{Email: tc.email, Password: tc.password}
+		params := httpapi.PostLoginRequest{Email: tc.email, Password: tc.password}
 		b, err := json.Marshal(params)
 		if err != nil {
 			t.Errorf("Error creating user to post: %v", err)
