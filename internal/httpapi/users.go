@@ -111,12 +111,12 @@ func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 
 	session, err := s.Repositories.UserSessions.GetSession(r.Context(), refreshToken)
 	if err != nil {
-		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot retrieve session: %s", err).Error())
+		respondWithMessage(w, http.StatusUnauthorized, fmt.Errorf("Cannot retrieve session: %s", err).Error())
 		return
 	}
 
 	if session.ExpiresAt.Before(time.Now()) {
-		respondWithMessage(w, http.StatusBadRequest, "Session token has expired. Please re-authenticate.")
+		respondWithMessage(w, http.StatusUnauthorized, "Session token has expired. Please re-authenticate.")
 		return
 	}
 
