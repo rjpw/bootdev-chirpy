@@ -66,7 +66,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// generate a token and attach to the user object
 	token, err := auth.MakeJWT(user.ID, s.environment.SecretKey, time.Duration(minExpiry)*time.Second)
-	user.Token = token
+	user.AccessToken = token
 
 	respondWithJSON(w, http.StatusOK, user)
 }

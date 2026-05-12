@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"net/http"
@@ -56,6 +57,12 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 		return "", err
 	}
 	return signedTokenString, nil
+}
+
+func MakeRefreshToken() string {
+	token := make([]byte, 256)
+	rand.Read(token)
+	return fmt.Sprintf("%x", token)
 }
 
 func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {

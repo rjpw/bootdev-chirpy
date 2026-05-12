@@ -276,13 +276,13 @@ func TestLoginProducesToken(t *testing.T) {
 				if err != nil {
 					t.Errorf("%s -- Error decoding user %v", tc.name, err)
 					continue
-				} else if len(user.Token) == 0 {
+				} else if len(user.AccessToken) == 0 {
 					t.Errorf("%s -- Expecting a populated token and got none", tc.name)
 				}
 
 			} else {
-				if err == nil && len(user.Token) > 0 {
-					t.Errorf("%s -- Expecting no token and got %s", tc.name, user.Token)
+				if err == nil && len(user.AccessToken) > 0 {
+					t.Errorf("%s -- Expecting no token and got %s", tc.name, user.AccessToken)
 				}
 			}
 
@@ -381,7 +381,7 @@ func TestMITMTokenTheftScenario(t *testing.T) {
 		if tc.path == "/api/login" && w.Code == http.StatusOK {
 			user, _ := decodeEntity[domain.User](t, w.Body.String())
 			fmt.Printf("Retaining user %v for later use ...\n", user)
-			tokenCache[tc.email] = user.Token
+			tokenCache[tc.email] = user.AccessToken
 			userCache[tc.email] = user
 		}
 

@@ -40,7 +40,7 @@ func TestValidateChirpAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not create user: %s", err.Error())
 	} else {
-		fmt.Printf("Using user %v for chirps, %v\n", user.Email, user.Token)
+		fmt.Printf("Using user %v for chirps, %v\n", user.Email, user.AccessToken)
 	}
 
 	for _, tc := range cases {
@@ -56,7 +56,7 @@ func TestValidateChirpAPI(t *testing.T) {
 				"/api/chirps",
 				strings.NewReader(string(payload)),
 			)
-			r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", user.Token))
+			r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", user.AccessToken))
 			w := httptest.NewRecorder()
 			srv.ServeHTTP(w, r)
 
