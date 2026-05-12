@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 )
 
@@ -36,11 +35,11 @@ func TestValidateChirpAPI(t *testing.T) {
 	rep = httptest.NewRecorder()
 	srv.ServeHTTP(rep, req)
 
-	user, err := decodeEntity[domain.User](t, rep.Body.String())
+	user, err := decodeEntity[httpapi.PostLoginReply](t, rep.Body.String())
 	if err != nil {
 		t.Fatalf("Could not create user: %s", err.Error())
 	} else {
-		fmt.Printf("Using user %v for chirps, %v\n", user.Email, user.AccessToken)
+		fmt.Printf("Using user %v for chirps\n", user.Email)
 	}
 
 	for _, tc := range cases {

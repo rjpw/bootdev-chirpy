@@ -7,12 +7,10 @@ import (
 )
 
 type User struct {
-	ID          uuid.UUID `json:"id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Email       string    `json:"email"`
-	AccessToken string    `json:"token"`
-	SessionID   string    `json:"refresh_token"`
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Email     string
 }
 
 type UserCredentials struct {
@@ -21,10 +19,11 @@ type UserCredentials struct {
 }
 
 type UserSession struct {
-	ID        string
-	UserID    uuid.UUID // allow cascading deletes and multiple devices
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	ExpiresAt time.Time
-	RevokedAt time.Time // if note revoked, t.IsZero() will be true
+	ID          string
+	AccessToken string
+	UserID      uuid.UUID // allow cascading deletes and multiple devices
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ExpiresAt   time.Time
+	RevokedAt   time.Time // if note revoked, t.IsZero() will be true
 }

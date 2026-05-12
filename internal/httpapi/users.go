@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
@@ -16,6 +17,15 @@ type PostLoginRequest struct {
 	Email            string `json:"email"`
 	Password         string `json:"password"`
 	ExpiresInSeconds int    `json:"expires_in_seconds"`
+}
+
+type PostLoginReply struct {
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	AccessToken string    `json:"token"`
+	SessionID   string    `json:"refresh_token"`
 }
 
 func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -40,14 +50,14 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
-	var params PostLoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+	var loginRequestBody PostLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&loginRequestBody); err != nil {
 		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
 		return
 	}
 
 	user, err := s.Repositories.Users.AuthenticateUser(
-		r.Context(), params.Email, params.Password)
+		r.Context(), loginRequestBody.Email, loginRequestBody.Password)
 	if err != nil {
 		fmt.Printf("User authentication error: %v\n", err)
 		if errors.Is(err, domain.ErrNotFound) {
@@ -60,13 +70,23 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// choose the minimum of 3600 seconds and the user's requested expires_in_seconds
 	minExpiry := 3600
-	if params.ExpiresInSeconds > 0 && params.ExpiresInSeconds < minExpiry {
-		minExpiry = params.ExpiresInSeconds
+	if loginRequestBody.ExpiresInSeconds > 0 && loginRequestBody.ExpiresInSeconds < minExpiry {
+		minExpiry = loginRequestBody.ExpiresInSeconds
 	}
 
-	// generate a token and attach to the user object
 	token, err := auth.MakeJWT(user.ID, s.environment.SecretKey, time.Duration(minExpiry)*time.Second)
-	user.AccessToken = token
+	if err != nil {
+		respondWithMessage(w, http.StatusInternalServerError, "Server error creating JWT")
+	}
 
-	respondWithJSON(w, http.StatusOK, user)
+	loginReply := PostLoginReply{
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		Email:       user.Email,
+		AccessToken: token,
+		SessionID:   "", // nothing just yet
+	}
+
+	respondWithJSON(w, http.StatusOK, loginReply)
 }

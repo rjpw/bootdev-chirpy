@@ -261,7 +261,7 @@ func TestLoginProducesToken(t *testing.T) {
 		srv.ServeHTTP(w, r)
 		if tc.path == "/api/login" {
 
-			var user domain.User
+			var user httpapi.PostLoginReply
 			err := json.NewDecoder(strings.NewReader(w.Body.String())).Decode(&user)
 
 			// if login returned OK we expect a user with a good token
@@ -347,7 +347,7 @@ func TestMITMTokenTheftScenario(t *testing.T) {
 	}
 
 	tokenCache := make(map[string]string)
-	userCache := make(map[string]domain.User)
+	userCache := make(map[string]httpapi.PostLoginReply)
 
 	// reset the server for good measure
 	r := httptest.NewRequest(http.MethodPost, "/admin/reset", strings.NewReader(""))
@@ -373,7 +373,7 @@ func TestMITMTokenTheftScenario(t *testing.T) {
 
 		// keep tokens for later MITM attempt by Saul
 		if tc.path == "/api/login" && w.Code == http.StatusOK {
-			user, _ := decodeEntity[domain.User](t, w.Body.String())
+			user, _ := decodeEntity[httpapi.PostLoginReply](t, w.Body.String())
 			fmt.Printf("Retaining user %v for later use ...\n", user)
 			tokenCache[tc.email] = user.AccessToken
 			userCache[tc.email] = user
