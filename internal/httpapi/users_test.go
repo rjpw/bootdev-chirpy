@@ -29,12 +29,6 @@ func getUserPayload(t *testing.T, email, password string) string {
 	return marshalEntity(t, params)
 }
 
-func getChirpPayload(t *testing.T, body string) string {
-	t.Helper()
-	params := httpapi.ChirpParams{Body: body}
-	return marshalEntity(t, params)
-}
-
 func TestUserFromRawString(t *testing.T) {
 	cases := []struct {
 		name         string
