@@ -101,5 +101,26 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := auth.GetRefreshToken(r.Header)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot retrieve refresh token: %s", err).Error())
+	}
+
+	session, err := s.Repositories.UserSessions.GetSession(r.Context(), refreshToken)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot retrieve session: %s", err).Error())
+	}
+
+	if session.ExpiresAt.Before(time.Now()) {
+		respondWithMessage(w, http.StatusBadRequest, "Session token has expired. Please re-authenticate.")
+	}
+
+	accessToken, err := auth.MakeJWT(session.UserID, s.environment.SecretKey, time.Duration(3600)*time.Second)
+	if err != nil {
+		respondWithMessage(w, http.StatusInternalServerError, fmt.Errorf("Error creating access token: %s", err).Error())
+	}
+
+	refreshTokenResponse := SessionRefreshResponse{AccessToken: accessToken}
+	respondWithJSON(w, http.StatusOK, refreshTokenResponse)
 
 }
