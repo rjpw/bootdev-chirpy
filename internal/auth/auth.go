@@ -13,9 +13,19 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetBearerToken(headers http.Header) (string, error) {
+const refreshTokenLength = 256
 
-	re := regexp.MustCompile(`^Bearer\s+([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)$`)
+func GetAccessToken(headers http.Header) (string, error) {
+	return getTokenByRegex(headers, `^Bearer\s+([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)$`)
+}
+
+func GetRefreshToken(headers http.Header) (string, error) {
+	pattern := fmt.Sprintf("^Bearer\\s+([a-fA-F0-9]{%d})$", refreshTokenLength)
+	return getTokenByRegex(headers, pattern)
+}
+
+func getTokenByRegex(headers http.Header, regex string) (string, error) {
+	re := regexp.MustCompile(regex)
 
 	matches := re.FindStringSubmatch(headers.Get("Authorization"))
 
@@ -60,7 +70,7 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 }
 
 func MakeRefreshToken() string {
-	token := make([]byte, 256)
+	token := make([]byte, refreshTokenLength)
 	rand.Read(token)
 	return fmt.Sprintf("%x", token)
 }

@@ -181,7 +181,7 @@ func TestBearerTokens(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := auth.GetBearerToken(tc.headers)
+			_, err := auth.GetAccessToken(tc.headers)
 			if tc.expectedError != nil {
 				if err == nil {
 					t.Errorf("Expecting error %v and got none", tc.expectedError)

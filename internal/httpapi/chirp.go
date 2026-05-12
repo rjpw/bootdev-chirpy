@@ -32,7 +32,7 @@ func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: make this middleware
 	// get the user ID from the bearer token
-	token, err := auth.GetBearerToken(r.Header)
+	token, err := auth.GetAccessToken(r.Header)
 	if err != nil {
 		respondWithMessage(w, http.StatusBadRequest, err.Error())
 	}
