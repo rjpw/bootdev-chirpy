@@ -4,7 +4,9 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
+	"net/http/httptest"
 	"regexp"
 	"strconv"
 	"strings"
@@ -51,10 +53,34 @@ func parseHitCount(t *testing.T, body string) int {
 	return count
 }
 
+func issueAuthorizedRequest(srv *httpapi.Server, method, path, authValue string, body io.Reader) *httptest.ResponseRecorder {
+	r := httptest.NewRequest(method, path, body)
+	r.Header.Add("Authorization", authValue)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, r)
+	return w
+}
+
+func issueRequest(srv *httpapi.Server, method, path string, body io.Reader) *httptest.ResponseRecorder {
+	r := httptest.NewRequest(method, path, body)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, r)
+	return w
+}
+
+func marshalEntity[T any](t *testing.T, params T) string {
+	b, err := json.Marshal(params)
+	if err != nil {
+		t.Errorf("Error creating entity: %v", err)
+	}
+	return string(b)
+}
+
 func decodeEntity[T any](t *testing.T, rawData string) (T, error) {
 	t.Helper()
 	var v T
 	if err := json.NewDecoder(strings.NewReader(rawData)).Decode(&v); err != nil {
+		t.Errorf("Error decoding entity %q", err)
 		return v, err
 	}
 	return v, nil
