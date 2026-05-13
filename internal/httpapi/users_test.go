@@ -277,7 +277,6 @@ func TestMITMTokenTheftScenario(t *testing.T) {
 		// keep tokens for later MITM attempt by Saul
 		if tc.path == "/api/login" && w.Code == http.StatusOK {
 			user, _ := decodeEntity[httpapi.PostLoginResponse](t, w.Body.String())
-			fmt.Printf("Retaining user %v for later use ...\n", user)
 			testCache.tokenCache[tc.email] = user.AccessToken
 			testCache.userCache[tc.email] = user
 		}
@@ -351,7 +350,6 @@ func TestTokenRefreshScenarios(t *testing.T) {
 
 			if w.Code == http.StatusOK {
 				user, _ := decodeEntity[httpapi.PostLoginResponse](t, w.Body.String())
-				fmt.Printf("Retaining user %v for later use ...\n", user)
 				testCache.tokenCache[tc.email] = user.AccessToken
 				cachedRefreshToken = user.SessionID
 			} else {
@@ -360,8 +358,6 @@ func TestTokenRefreshScenarios(t *testing.T) {
 		case "/api/refresh":
 			if len(cachedRefreshToken) == 0 {
 				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
-			} else {
-				fmt.Printf("Using refresh token: %s ...\n", cachedRefreshToken[:8])
 			}
 
 			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path,
@@ -381,8 +377,6 @@ func TestTokenRefreshScenarios(t *testing.T) {
 		case "/api/revoke":
 			if len(cachedRefreshToken) == 0 {
 				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
-			} else {
-				fmt.Printf("Using refresh token: %s ...\n", cachedRefreshToken[:8])
 			}
 			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path, fmt.Sprintf("Bearer %s", cachedRefreshToken), strings.NewReader(""))
 
@@ -457,65 +451,24 @@ func TestAuthorizationScenarios(t *testing.T) {
 
 			if w.Code == http.StatusOK {
 				user, _ := decodeEntity[httpapi.PostLoginResponse](t, w.Body.String())
-				fmt.Printf("Retaining user %v for later use ...\n", user)
 				testCache.tokenCache[tc.email] = user.AccessToken
 				cachedRefreshToken = user.SessionID
 			} else {
 				t.Errorf("%s -- Error logging in: %s", tc.name, w.Body.String())
 			}
-		case "/api/refresh":
+		case "/api/users":
 			if len(cachedRefreshToken) == 0 {
 				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
-			} else {
-				fmt.Printf("Using refresh token: %s ...\n", cachedRefreshToken[:8])
 			}
 
-			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path,
-				fmt.Sprintf("Bearer %s", cachedRefreshToken),
-				strings.NewReader(""))
-
-			if w.Code == http.StatusOK {
-
-				rt, err := decodeEntity[httpapi.SessionRefreshResponse](t, w.Body.String())
-				if err != nil {
-					t.Errorf("%s -- Error getting refresh token from header: %v", tc.name, err)
-				} else {
-					cachedRefreshToken = rt.AccessToken
-				}
-			}
-
-		case "/api/revoke":
-			if len(cachedRefreshToken) == 0 {
-				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
-			} else {
-				fmt.Printf("Using refresh token: %s ...\n", cachedRefreshToken[:8])
-			}
-
-			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path,
-				fmt.Sprintf("Bearer %s", cachedRefreshToken),
-				strings.NewReader(""))
-
-			if w.Code == http.StatusOK {
-
-				rt, err := decodeEntity[httpapi.SessionRefreshResponse](t, w.Body.String())
-				if err != nil {
-					t.Errorf("%s -- Error getting refresh token from header: %v", tc.name, err)
-				} else {
-					cachedRefreshToken = rt.AccessToken
-				}
-			}
-
-		case "/api/chirps":
-
-			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path,
+			w := issueAuthorizedRequest(srv, tc.method, tc.path,
 				fmt.Sprintf("Bearer %s", testCache.tokenCache[tc.email]),
-				getFileReader(t, fmt.Sprintf("ChirpParams_%s.json", tc.email)))
+				getFileReader(t, fmt.Sprintf("UserParams_%s.json", "saul@breakingbad.com")))
 
-			// expect rejection on bad password (for example)
-			if w.Code != tc.responseCode {
-				fmt.Printf("\n\nResponse Body: %s\n\n", w.Body.String())
-				t.Errorf("%s -- %s -- Expected response code %d, got %d", tc.name, tc.path, tc.responseCode, w.Code)
+			if w.Code != http.StatusOK {
+				t.Errorf("%s -- Error updating user details: %v", tc.name, w.Body)
 			}
+
 		}
 
 	}

@@ -3,7 +3,6 @@ package memory
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,7 +41,6 @@ func (s *Repository) CreateUser(_ context.Context, email, password string) (*dom
 
 	s.users[id] = user
 	s.userCredentials[id] = userCreds
-	fmt.Printf("ID: %s, H: %s\n", id.String(), password)
 	return &user, nil
 }
 
@@ -67,7 +65,6 @@ func (s *Repository) AuthenticateUser(ctx context.Context, email, password strin
 
 	creds := s.userCredentials[user.ID]
 	ok, err := auth.CheckPasswordHash(password, creds.Password)
-	fmt.Printf("P: %s, H: %s, OK: %v\n", password, creds.Password, ok)
 	if err != nil {
 		return nil, err
 	}

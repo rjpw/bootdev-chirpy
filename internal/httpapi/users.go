@@ -12,7 +12,11 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
 
-// struct to receive a JSON api `chirp`
+type PutUserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type PostLoginRequest struct {
 	Email            string `json:"email"`
 	Password         string `json:"password"`
@@ -58,6 +62,76 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, createUserResponse)
+}
+
+func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
+
+	/* Pseudocode (reverse engineering from the course author's implicit requirement)
+		if we have an access token, then
+		  if token is valid (returns UUID of the user)
+	    	look for the user record by its UUID
+			if the record is found, then
+			    if we can create the user with this new email (collision risk here!), then
+					delete the old user record
+					return new user record
+				otherwise
+					return the bad news about email collision
+			otherwise (... odd, because we know they existed when they got a good token)
+			   return not found
+		  otherwise
+		    return unauthorized
+		otherwise
+		  return unauthorized
+	*/
+
+	accessToken, err := auth.GetAccessToken(r.Header)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error retrieving access token: %s", err.Error()), http.StatusUnauthorized)
+		return
+	}
+
+	user_id, err := auth.ValidateJWT(accessToken, s.environment.SecretKey)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error validating access token: %s", err.Error()), http.StatusUnauthorized)
+		return
+	}
+
+	var params PutUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding PutUserRequest: %s", err.Error()), http.StatusUnauthorized)
+		return
+	}
+
+	oldUser, err := s.Repositories.Users.GetUserByID(r.Context(), user_id.String())
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error locating you by your UUID: %s", err.Error()), http.StatusUnauthorized)
+		return
+	}
+
+	email := params.Email
+	hashedPassword, err := auth.HashPassword(params.Password)
+	newUser, err := s.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
+	if err != nil {
+		if errors.Is(err, domain.ErrConflict) {
+			respondWithMessage(w, http.StatusConflict, "User already exists")
+		} else {
+			respondWithMessage(w, http.StatusBadRequest, err.Error())
+		}
+		return
+	}
+
+	// we're trusting they know what they're doing here (sigh)
+	s.Repositories.Users.DeleteUser(r.Context(), oldUser.Email)
+
+	createUserResponse := PostLoginResponse{
+		ID:        newUser.ID,
+		CreatedAt: newUser.CreatedAt,
+		UpdatedAt: newUser.UpdatedAt,
+		Email:     newUser.Email,
+	}
+
+	respondWithJSON(w, http.StatusOK, createUserResponse)
+
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {

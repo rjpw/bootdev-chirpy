@@ -38,8 +38,6 @@ func TestValidateChirpAPI(t *testing.T) {
 	user, err := decodeEntity[httpapi.PostLoginResponse](t, rep.Body.String())
 	if err != nil {
 		t.Fatalf("Could not create user: %s", err.Error())
-	} else {
-		fmt.Printf("Using user %v for chirps\n", user.Email)
 	}
 
 	for _, tc := range cases {
