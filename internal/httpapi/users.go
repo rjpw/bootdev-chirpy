@@ -65,7 +65,6 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
-
 	/* Pseudocode (reverse engineering from the course author's implicit requirement)
 		if we have an access token, then
 		  if token is valid (returns UUID of the user)
@@ -86,25 +85,41 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	accessToken, err := auth.GetAccessToken(r.Header)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error retrieving access token: %s", err.Error()), http.StatusUnauthorized)
+		http.Error(
+			w,
+			fmt.Sprintf("Error retrieving access token: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
 	user_id, err := auth.ValidateJWT(accessToken, s.environment.SecretKey)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error validating access token: %s", err.Error()), http.StatusUnauthorized)
+		http.Error(
+			w,
+			fmt.Sprintf("Error validating access token: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
 	var params PutUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		http.Error(w, fmt.Sprintf("Error decoding PutUserRequest: %s", err.Error()), http.StatusUnauthorized)
+		http.Error(
+			w,
+			fmt.Sprintf("Error decoding PutUserRequest: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
 	oldUser, err := s.Repositories.Users.GetUserByID(r.Context(), user_id.String())
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error locating you by your UUID: %s", err.Error()), http.StatusUnauthorized)
+		http.Error(
+			w,
+			fmt.Sprintf("Error locating you by your UUID: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
@@ -131,7 +146,6 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, createUserResponse)
-
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +173,11 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		minExpiry = loginRequestBody.ExpiresInSeconds
 	}
 
-	token, err := auth.MakeJWT(user.ID, s.environment.SecretKey, time.Duration(minExpiry)*time.Second)
+	token, err := auth.MakeJWT(
+		user.ID,
+		s.environment.SecretKey,
+		time.Duration(minExpiry)*time.Second,
+	)
 	if err != nil {
 		respondWithMessage(w, http.StatusInternalServerError, "Server error creating JWT")
 		return
@@ -186,50 +204,80 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetRefreshToken(r.Header)
 	if err != nil {
-		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot retrieve refresh token: %s", err).Error())
+		respondWithMessage(
+			w,
+			http.StatusBadRequest,
+			fmt.Errorf("Cannot retrieve refresh token: %s", err).Error(),
+		)
 		return
 	}
 
 	session, err := s.Repositories.UserSessions.GetSession(r.Context(), refreshToken)
 	if err != nil {
-		respondWithMessage(w, http.StatusUnauthorized, fmt.Errorf("Cannot retrieve session: %s", err).Error())
+		respondWithMessage(
+			w,
+			http.StatusUnauthorized,
+			fmt.Errorf("Cannot retrieve session: %s", err).Error(),
+		)
 		return
 	}
 
 	if session.ExpiresAt.Before(time.Now()) {
-		respondWithMessage(w, http.StatusUnauthorized, "Session token has expired. Please re-authenticate.")
+		respondWithMessage(
+			w,
+			http.StatusUnauthorized,
+			"Session token has expired. Please re-authenticate.",
+		)
 		return
 	}
 
 	if !session.RevokedAt.IsZero() {
-		respondWithMessage(w, http.StatusUnauthorized, "Session token was revoked. Please re-authenticate.")
+		respondWithMessage(
+			w,
+			http.StatusUnauthorized,
+			"Session token was revoked. Please re-authenticate.",
+		)
 		return
 	}
 
-	accessToken, err := auth.MakeJWT(session.UserID, s.environment.SecretKey, time.Duration(3600)*time.Second)
+	accessToken, err := auth.MakeJWT(
+		session.UserID,
+		s.environment.SecretKey,
+		time.Duration(3600)*time.Second,
+	)
 	if err != nil {
-		respondWithMessage(w, http.StatusInternalServerError, fmt.Errorf("Error creating access token: %s", err).Error())
+		respondWithMessage(
+			w,
+			http.StatusInternalServerError,
+			fmt.Errorf("Error creating access token: %s", err).Error(),
+		)
 		return
 	}
 
 	refreshTokenResponse := SessionRefreshResponse{AccessToken: accessToken}
 	respondWithJSON(w, http.StatusOK, refreshTokenResponse)
-
 }
 
 func (s *Server) handleSessionRevoke(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetRefreshToken(r.Header)
 	if err != nil {
-		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot retrieve refresh token: %s", err).Error())
+		respondWithMessage(
+			w,
+			http.StatusBadRequest,
+			fmt.Errorf("Cannot retrieve refresh token: %s", err).Error(),
+		)
 		return
 	}
 
 	err = s.Repositories.UserSessions.RevokeSession(r.Context(), refreshToken)
 	if err != nil {
-		respondWithMessage(w, http.StatusBadRequest, fmt.Errorf("Cannot revoke session: %s", err).Error())
+		respondWithMessage(
+			w,
+			http.StatusBadRequest,
+			fmt.Errorf("Cannot revoke session: %s", err).Error(),
+		)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-
 }

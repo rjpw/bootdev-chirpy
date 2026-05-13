@@ -37,7 +37,6 @@ func TestPasswordHashing(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			if tc.generateHash {
 				hash, err := auth.HashPassword(tc.password)
 				if err != nil {
@@ -52,7 +51,6 @@ func TestPasswordHashing(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestJWTCreation(t *testing.T) {
@@ -97,7 +95,6 @@ func TestJWTCreation(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			id, err := uuid.Parse(tc.user_id)
 
 			// default to the riskier state "imagine-hacker-trying-keys"
@@ -136,7 +133,6 @@ func TestJWTCreation(t *testing.T) {
 }
 
 func TestBearerTokens(t *testing.T) {
-
 	cases := []struct {
 		name          string
 		headers       http.Header
@@ -145,8 +141,10 @@ func TestBearerTokens(t *testing.T) {
 		{
 			name: "good example",
 			headers: map[string][]string{
-				"Authorization": {"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXNzIiwic3ViIjoiYmYxYjI5OGEtN2U3My00YWExLWI4ZDItODRiYWE3ZWYzOGFlIiwiZXhwIjoxNzc4MTY4NTY5LCJpYXQiOjE3NzgxNjg1Njh9.M9nKwDrqKHSye8jsUzVD2i7C2p4aebpWRCSmPxO8Yr8"},
-				"Accept":        {"application/json"},
+				"Authorization": {
+					"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXNzIiwic3ViIjoiYmYxYjI5OGEtN2U3My00YWExLWI4ZDItODRiYWE3ZWYzOGFlIiwiZXhwIjoxNzc4MTY4NTY5LCJpYXQiOjE3NzgxNjg1Njh9.M9nKwDrqKHSye8jsUzVD2i7C2p4aebpWRCSmPxO8Yr8",
+				},
+				"Accept": {"application/json"},
 			},
 			expectedError: nil,
 		},
@@ -164,7 +162,9 @@ func TestBearerTokens(t *testing.T) {
 			headers: map[string][]string{
 				"Accept-Encoding": {"gzip, deflate"},
 				"Accept-Language": {"en-us"},
-				"Authorization":   {"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXNzIiwic3ViIjoiYmYxYjI5OGEtN2U3My00YWExLWI4ZDItODRiYWE3ZWYzOGFlIiwiZXhwIjoxNzc4MTY4NTY5LCJpYXQiOjE3NzgxNjg1Njh9.M9nKwDrqKHSye8jsUzVD2i7C2p4aebpWRCSmPxO8Yr8"},
+				"Authorization": {
+					"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXNzIiwic3ViIjoiYmYxYjI5OGEtN2U3My00YWExLWI4ZDItODRiYWE3ZWYzOGFlIiwiZXhwIjoxNzc4MTY4NTY5LCJpYXQiOjE3NzgxNjg1Njh9.M9nKwDrqKHSye8jsUzVD2i7C2p4aebpWRCSmPxO8Yr8",
+				},
 			},
 			expectedError: errors.New("No valid Bearer token found"),
 		},

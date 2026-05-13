@@ -28,7 +28,11 @@ func TestValidateChirpAPI(t *testing.T) {
 	srv := newTestServer()
 
 	// get a user to post with
-	req := httptest.NewRequest("POST", "/api/users", getFileReader(t, "UserParams_with_expiry.json"))
+	req := httptest.NewRequest(
+		"POST",
+		"/api/users",
+		getFileReader(t, "UserParams_with_expiry.json"),
+	)
 	rep := httptest.NewRecorder()
 	srv.ServeHTTP(rep, req)
 
@@ -67,7 +71,6 @@ func TestValidateChirpAPI(t *testing.T) {
 }
 
 func TestDeletingChirp(t *testing.T) {
-
 	srv := newTestServer()
 
 	w := issueRequest(srv, http.MethodPost, "/api/users",
@@ -97,13 +100,16 @@ func TestDeletingChirp(t *testing.T) {
 			t.Errorf("Could not decode chirp response: %s", err.Error())
 		} else {
 			// finally we can attempt to delete the chirp
-			w = issueAuthorizedRequest(srv, http.MethodDelete, fmt.Sprintf("/api/chirps/%s", chirp.ID),
+			w = issueAuthorizedRequest(
+				srv,
+				http.MethodDelete,
+				fmt.Sprintf("/api/chirps/%s", chirp.ID),
 				fmt.Sprintf("Bearer %s", user.AccessToken),
-				strings.NewReader(""))
+				strings.NewReader(""),
+			)
 			if w.Code != http.StatusNoContent {
 				t.Errorf("Expected to be able to delete chirp and got: %s", w.Body.String())
 			}
 		}
 	}
-
 }

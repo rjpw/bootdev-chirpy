@@ -12,7 +12,10 @@ import (
 
 var _ application.UserSessionRepository = (*Repository)(nil)
 
-func (r *Repository) CreateSession(ctx context.Context, user_id uuid.UUID) (*domain.UserSession, error) {
+func (r *Repository) CreateSession(
+	ctx context.Context,
+	user_id uuid.UUID,
+) (*domain.UserSession, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

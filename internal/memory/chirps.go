@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,7 +11,11 @@ import (
 
 var _ application.ChirpRepository = (*Repository)(nil) // compiler guard for ChirpRepo
 
-func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.UUID) (*domain.Chirp, error) {
+func (r *Repository) CreateChirp(
+	ctx context.Context,
+	body string,
+	user_id uuid.UUID,
+) (*domain.Chirp, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -31,9 +34,7 @@ func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.
 		UserID:    user_id,
 	}
 
-	fmt.Printf("Chirp created: %v\n", chirp)
 	r.chirps[id] = chirp
-
 	return &chirp, nil
 }
 
@@ -49,7 +50,6 @@ func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domai
 
 	chirps := make([]domain.Chirp, 0, 10)
 	return chirps, nil
-
 }
 
 func (r *Repository) GetChirpByID(ctx context.Context, id string) (*domain.Chirp, error) {

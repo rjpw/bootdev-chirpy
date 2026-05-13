@@ -47,7 +47,10 @@ func (s *Repository) GetUserByEmail(ctx context.Context, email string) (*domain.
 	return toRepositoryUser(user), nil
 }
 
-func (s *Repository) AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error) {
+func (s *Repository) AuthenticateUser(
+	ctx context.Context,
+	email, password string,
+) (*domain.User, error) {
 	user, err := s.db.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, mapError(err)

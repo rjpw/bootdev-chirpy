@@ -25,7 +25,8 @@ type jsonError struct {
 func NewServer(environment application.Environment,
 	metrics *application.ServerMetrics,
 	repositories *application.Repositories,
-	staticPath string) *Server {
+	staticPath string,
+) *Server {
 	s := &Server{
 		mux:          http.NewServeMux(),
 		staticPath:   staticPath,

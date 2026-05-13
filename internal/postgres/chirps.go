@@ -27,7 +27,11 @@ func toDomainChirps(chirps []database.Chirp) []domain.Chirp {
 	return dchirps
 }
 
-func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.UUID) (*domain.Chirp, error) {
+func (r *Repository) CreateChirp(
+	ctx context.Context,
+	body string,
+	user_id uuid.UUID,
+) (*domain.Chirp, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	user, err := r.GetUserByID(ctx, user_id.String())
 	if err != nil {
@@ -60,7 +64,6 @@ func (r *Repository) GetChirpByID(ctx context.Context, id string) (*domain.Chirp
 }
 
 func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domain.Chirp, error) {
-
 	chirps, err := r.db.GetAllChirps(ctx)
 	if err != nil {
 		return nil, mapError(err)

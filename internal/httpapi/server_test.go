@@ -53,7 +53,11 @@ func parseHitCount(t *testing.T, body string) int {
 	return count
 }
 
-func issueAuthorizedRequest(srv *httpapi.Server, method, path, authValue string, body io.Reader) *httptest.ResponseRecorder {
+func issueAuthorizedRequest(
+	srv *httpapi.Server,
+	method, path, authValue string,
+	body io.Reader,
+) *httptest.ResponseRecorder {
 	r := httptest.NewRequest(method, path, body)
 	r.Header.Add("Authorization", authValue)
 	w := httptest.NewRecorder()
@@ -61,7 +65,11 @@ func issueAuthorizedRequest(srv *httpapi.Server, method, path, authValue string,
 	return w
 }
 
-func issueRequest(srv *httpapi.Server, method, path string, body io.Reader) *httptest.ResponseRecorder {
+func issueRequest(
+	srv *httpapi.Server,
+	method, path string,
+	body io.Reader,
+) *httptest.ResponseRecorder {
 	r := httptest.NewRequest(method, path, body)
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, r)
@@ -94,5 +102,4 @@ func getFileReader(t *testing.T, filename string) fs.File {
 		t.Fatalf("testdataFS.Open(%q) error: %v", filename, err)
 	}
 	return file
-
 }

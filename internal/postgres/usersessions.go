@@ -30,7 +30,10 @@ func toDomainUserSession(dbUserSession database.UserSession) *domain.UserSession
 	}
 }
 
-func (r *Repository) CreateSession(ctx context.Context, user_id uuid.UUID) (*domain.UserSession, error) {
+func (r *Repository) CreateSession(
+	ctx context.Context,
+	user_id uuid.UUID,
+) (*domain.UserSession, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	userSession, err := r.db.CreateSession(ctx, database.CreateSessionParams{
 		ID:        auth.MakeRefreshToken(),

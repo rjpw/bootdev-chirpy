@@ -47,9 +47,13 @@ func initializeUsers(t *testing.T, srv *httpapi.Server) {
 	issueRequest(srv, http.MethodPost, "/admin/reset", strings.NewReader(""))
 
 	for _, tc := range users {
-		issueRequest(srv, http.MethodPost, "/api/users", getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)))
+		issueRequest(
+			srv,
+			http.MethodPost,
+			"/api/users",
+			getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)),
+		)
 	}
-
 }
 
 func TestUserFromRawString(t *testing.T) {
@@ -83,7 +87,10 @@ func TestUserFromRawString(t *testing.T) {
 	}
 	for _, tc := range cases {
 		srv := newTestServer()
-		payload := marshalEntity(t, httpapi.PostLoginRequest{Email: tc.email, Password: tc.password})
+		payload := marshalEntity(
+			t,
+			httpapi.PostLoginRequest{Email: tc.email, Password: tc.password},
+		)
 		w := issueRequest(srv, tc.method, tc.path, strings.NewReader(payload))
 
 		if got := w.Header().Get("Content-Type"); got != tc.contentType {
@@ -134,7 +141,10 @@ func TestUserFromParams(t *testing.T) {
 	for _, tc := range cases {
 		srv := newTestServer()
 
-		payload := marshalEntity(t, httpapi.PostLoginRequest{Email: tc.email, Password: tc.password})
+		payload := marshalEntity(
+			t,
+			httpapi.PostLoginRequest{Email: tc.email, Password: tc.password},
+		)
 		w := issueRequest(srv, tc.method, tc.path, strings.NewReader(payload))
 
 		if got := w.Header().Get("Content-Type"); got != tc.contentType {
@@ -195,7 +205,10 @@ func TestCreateUserConflict(t *testing.T) {
 	}
 	for _, tc := range cases {
 
-		payload := marshalEntity(t, httpapi.PostLoginRequest{Email: tc.email, Password: tc.password})
+		payload := marshalEntity(
+			t,
+			httpapi.PostLoginRequest{Email: tc.email, Password: tc.password},
+		)
 		w := issueRequest(srv, tc.method, tc.path, strings.NewReader(payload))
 
 		if got := w.Header().Get("Content-Type"); got != tc.contentType {
@@ -265,9 +278,17 @@ func TestMITMTokenTheftScenario(t *testing.T) {
 		case "/api/users":
 			fallthrough
 		case "/api/login":
-			r = httptest.NewRequest(http.MethodPost, tc.path, getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)))
+			r = httptest.NewRequest(
+				http.MethodPost,
+				tc.path,
+				getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)),
+			)
 		case "/api/chirps":
-			r = httptest.NewRequest(http.MethodPost, tc.path, getFileReader(t, fmt.Sprintf("ChirpParams_%s.json", tc.email)))
+			r = httptest.NewRequest(
+				http.MethodPost,
+				tc.path,
+				getFileReader(t, fmt.Sprintf("ChirpParams_%s.json", tc.email)),
+			)
 			r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", testCache.tokenCache[tc.email]))
 		}
 
@@ -284,7 +305,13 @@ func TestMITMTokenTheftScenario(t *testing.T) {
 		// expect rejection on bad password
 		if w.Code != tc.responseCode {
 			fmt.Printf("\n\nResponse Body: %s\n\n", w.Body.String())
-			t.Errorf("%s -- %s -- Expected response code %d, got %d", tc.name, tc.path, tc.responseCode, w.Code)
+			t.Errorf(
+				"%s -- %s -- Expected response code %d, got %d",
+				tc.name,
+				tc.path,
+				tc.responseCode,
+				w.Code,
+			)
 		}
 
 	}
@@ -342,11 +369,15 @@ func TestTokenRefreshScenarios(t *testing.T) {
 	cachedRefreshToken := ""
 
 	for _, tc := range cases {
-
 		switch tc.path {
 		case "/api/login":
 
-			w := issueRequest(srv, http.MethodPost, tc.path, getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)))
+			w := issueRequest(
+				srv,
+				http.MethodPost,
+				tc.path,
+				getFileReader(t, fmt.Sprintf("UserParams_%s.json", tc.email)),
+			)
 
 			if w.Code == http.StatusOK {
 				user, _ := decodeEntity[httpapi.PostLoginResponse](t, w.Body.String())
@@ -357,7 +388,11 @@ func TestTokenRefreshScenarios(t *testing.T) {
 			}
 		case "/api/refresh":
 			if len(cachedRefreshToken) == 0 {
-				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
+				t.Errorf(
+					"%s -- Error retrieving refresh token: %s",
+					tc.name,
+					"No cached refresh token to use",
+				)
 			}
 
 			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path,
@@ -376,9 +411,19 @@ func TestTokenRefreshScenarios(t *testing.T) {
 
 		case "/api/revoke":
 			if len(cachedRefreshToken) == 0 {
-				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
+				t.Errorf(
+					"%s -- Error retrieving refresh token: %s",
+					tc.name,
+					"No cached refresh token to use",
+				)
 			}
-			w := issueAuthorizedRequest(srv, http.MethodPost, tc.path, fmt.Sprintf("Bearer %s", cachedRefreshToken), strings.NewReader(""))
+			w := issueAuthorizedRequest(
+				srv,
+				http.MethodPost,
+				tc.path,
+				fmt.Sprintf("Bearer %s", cachedRefreshToken),
+				strings.NewReader(""),
+			)
 
 			if w.Code == http.StatusOK {
 
@@ -398,10 +443,15 @@ func TestTokenRefreshScenarios(t *testing.T) {
 			// expect rejection on bad password (for example)
 			if w.Code != tc.responseCode {
 				fmt.Printf("\n\nResponse Body: %s\n\n", w.Body.String())
-				t.Errorf("%s -- %s -- Expected response code %d, got %d", tc.name, tc.path, tc.responseCode, w.Code)
+				t.Errorf(
+					"%s -- %s -- Expected response code %d, got %d",
+					tc.name,
+					tc.path,
+					tc.responseCode,
+					w.Code,
+				)
 			}
 		}
-
 	}
 }
 
@@ -443,7 +493,6 @@ func TestAuthorizationScenarios(t *testing.T) {
 	cachedRefreshToken := ""
 
 	for _, tc := range cases {
-
 		switch tc.path {
 		case "/api/login":
 			w := issueRequest(srv, http.MethodPost, tc.path,
@@ -458,7 +507,11 @@ func TestAuthorizationScenarios(t *testing.T) {
 			}
 		case "/api/users":
 			if len(cachedRefreshToken) == 0 {
-				t.Errorf("%s -- Error retrieving refresh token: %s", tc.name, "No cached refresh token to use")
+				t.Errorf(
+					"%s -- Error retrieving refresh token: %s",
+					tc.name,
+					"No cached refresh token to use",
+				)
 			}
 
 			w := issueAuthorizedRequest(srv, tc.method, tc.path,
@@ -470,6 +523,5 @@ func TestAuthorizationScenarios(t *testing.T) {
 			}
 
 		}
-
 	}
 }

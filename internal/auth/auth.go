@@ -16,7 +16,10 @@ import (
 const refreshTokenLength = 128
 
 func GetAccessToken(headers http.Header) (string, error) {
-	return getTokenByRegex(headers, `^Bearer\s+([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)$`)
+	return getTokenByRegex(
+		headers,
+		`^Bearer\s+([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)$`,
+	)
 }
 
 func GetRefreshToken(headers http.Header) (string, error) {
@@ -35,7 +38,6 @@ func getTokenByRegex(headers http.Header, regex string) (string, error) {
 	} else {
 		return "", errors.New("No valid Bearer token found")
 	}
-
 }
 
 func HashPassword(password string) (string, error) {

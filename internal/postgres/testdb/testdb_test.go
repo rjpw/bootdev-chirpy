@@ -9,7 +9,6 @@ import (
 )
 
 func TestAllTablesExist(t *testing.T) {
-
 	// struct is overkill in this case, but it might be useful later
 	cases := []struct {
 		name string
@@ -31,7 +30,6 @@ func TestAllTablesExist(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			var tableName string
 			err := db.DB.QueryRow(
 				"SELECT table_name FROM information_schema.tables WHERE table_name = $1",
@@ -40,8 +38,6 @@ func TestAllTablesExist(t *testing.T) {
 			if err != nil {
 				t.Fatalf("users table not found: %v", err)
 			}
-
 		})
 	}
-
 }

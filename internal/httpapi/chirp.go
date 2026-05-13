@@ -65,13 +65,11 @@ func (s *Server) handleGetChirps(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
-
 }
 
 func (s *Server) handleGetChirp(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("chirpID")
 	chirp, err := s.Repositories.Chirps.GetChirpByID(r.Context(), id)
-
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		if errors.Is(err, domain.ErrNotFound) {
@@ -82,19 +80,26 @@ func (s *Server) handleGetChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, chirp)
-
 }
 
 func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
 	accessToken, err := auth.GetAccessToken(r.Header)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error retrieving access token: %s", err.Error()), http.StatusUnauthorized)
+		http.Error(
+			w,
+			fmt.Sprintf("Error retrieving access token: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
 	user_id, err := auth.ValidateJWT(accessToken, s.environment.SecretKey)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error validating access token: %s", err.Error()), http.StatusUnauthorized)
+		http.Error(
+			w,
+			fmt.Sprintf("Error validating access token: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
@@ -106,16 +111,28 @@ func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if chirp.UserID != user_id {
-		http.Error(w, fmt.Sprintf("Cannot access Chirp: %s owned by %s with UserID: %s", chirpID, chirp.UserID, user_id), http.StatusForbidden)
+		http.Error(
+			w,
+			fmt.Sprintf(
+				"Cannot access Chirp: %s owned by %s with UserID: %s",
+				chirpID,
+				chirp.UserID,
+				user_id,
+			),
+			http.StatusForbidden,
+		)
 		return
 	}
 
 	err = s.Repositories.Chirps.DeleteChirp(r.Context(), chirpID)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error deleting chirp: %s", err.Error()), http.StatusInternalServerError)
+		http.Error(
+			w,
+			fmt.Sprintf("Error deleting chirp: %s", err.Error()),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-
 }

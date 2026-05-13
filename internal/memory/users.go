@@ -57,7 +57,10 @@ func (s *Repository) GetUserByEmail(_ context.Context, email string) (*domain.Us
 	return nil, domain.ErrNotFound
 }
 
-func (s *Repository) AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error) {
+func (s *Repository) AuthenticateUser(
+	ctx context.Context,
+	email, password string,
+) (*domain.User, error) {
 	user, err := s.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
