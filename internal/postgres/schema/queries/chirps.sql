@@ -22,3 +22,8 @@ INNER JOIN users
 ON chirps.user_id = users.id
 WHERE chirps.user_id = $1
 ORDER BY chirps.created_at ASC;
+
+-- name: DeleteChirpByID :exec
+DELETE FROM chirps
+WHERE id = $1;
+

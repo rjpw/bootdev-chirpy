@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,7 +16,7 @@ func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	user, err := r.getUserByID(user_id)
+	_, err := r.getUserByID(user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -27,9 +28,10 @@ func (r *Repository) CreateChirp(ctx context.Context, body string, user_id uuid.
 		CreatedAt: now,
 		UpdatedAt: now,
 		Body:      body,
-		UserID:    user.ID,
+		UserID:    user_id,
 	}
 
+	fmt.Printf("Chirp created: %v\n", chirp)
 	r.chirps[id] = chirp
 
 	return &chirp, nil
@@ -51,10 +53,31 @@ func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domai
 }
 
 func (r *Repository) GetChirpByID(ctx context.Context, id string) (*domain.Chirp, error) {
-	return &domain.Chirp{}, nil
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	chirpID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	chirp, ok := r.chirps[chirpID]
+	if !ok {
+		return nil, domain.ErrNotFound
+	}
+	return &chirp, nil
 }
 
 func (r *Repository) DeleteChirp(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	chirpID, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	delete(r.chirps, chirpID)
 	return nil
 }
 

@@ -3,10 +3,12 @@ package httpapi_test
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/rjpw/bootdev-chirpy/internal/domain"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 )
 
@@ -62,4 +64,46 @@ func TestValidateChirpAPI(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeletingChirp(t *testing.T) {
+
+	srv := newTestServer()
+
+	w := issueRequest(srv, http.MethodPost, "/api/users",
+		getFileReader(t, "UserParams_with_expiry.json"))
+
+	w = issueRequest(srv, http.MethodPost, "/api/login",
+		getFileReader(t, "UserParams_with_expiry.json"))
+
+	// we need the authenticated user for their token
+	user, err := decodeEntity[httpapi.PostLoginResponse](t, w.Body.String())
+	if err != nil {
+		t.Fatalf("Failed to login: %s", err.Error())
+	}
+
+	params := httpapi.ChirpParams{Body: "... something pithy and insightful ..."}
+	chirpRequest := marshalEntity(t, params)
+
+	w = issueAuthorizedRequest(srv, http.MethodPost, "/api/chirps",
+		fmt.Sprintf("Bearer %s", user.AccessToken),
+		strings.NewReader(chirpRequest))
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("POST /api/chirps: want status %d, got %d", http.StatusCreated, w.Code)
+	} else {
+		chirp, err := decodeEntity[domain.Chirp](t, w.Body.String())
+		if err != nil {
+			t.Errorf("Could not decode chirp response: %s", err.Error())
+		} else {
+			// finally we can attempt to delete the chirp
+			w = issueAuthorizedRequest(srv, http.MethodDelete, fmt.Sprintf("/api/chirps/%s", chirp.ID),
+				fmt.Sprintf("Bearer %s", user.AccessToken),
+				strings.NewReader(""))
+			if w.Code != http.StatusNoContent {
+				t.Errorf("Expected to be able to delete chirp and got: %s", w.Body.String())
+			}
+		}
+	}
+
 }

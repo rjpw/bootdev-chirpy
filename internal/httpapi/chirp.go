@@ -84,3 +84,38 @@ func (s *Server) handleGetChirp(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, chirp)
 
 }
+
+func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
+	accessToken, err := auth.GetAccessToken(r.Header)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error retrieving access token: %s", err.Error()), http.StatusUnauthorized)
+		return
+	}
+
+	user_id, err := auth.ValidateJWT(accessToken, s.environment.SecretKey)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error validating access token: %s", err.Error()), http.StatusUnauthorized)
+		return
+	}
+
+	chirpID := r.PathValue("chirpID")
+	chirp, err := s.Repositories.Chirps.GetChirpByID(r.Context(), chirpID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Chirp with ID %s not found", err.Error()), http.StatusNotFound)
+		return
+	}
+
+	if chirp.UserID != user_id {
+		http.Error(w, fmt.Sprintf("Cannot access Chirp: %s owned by %s with UserID: %s", chirpID, chirp.UserID, user_id), http.StatusForbidden)
+		return
+	}
+
+	err = s.Repositories.Chirps.DeleteChirp(r.Context(), chirpID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error deleting chirp: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+
+}

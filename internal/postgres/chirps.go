@@ -68,5 +68,16 @@ func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domai
 	return toDomainChirps(chirps), nil
 }
 
-func (r *Repository) DeleteChirp(ctx context.Context, id string) error          { return nil }
+func (r *Repository) DeleteChirp(ctx context.Context, id string) error {
+	chirpid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+	err = r.db.DeleteChirpByID(ctx, chirpid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Repository) DeleteAllChirps(ctx context.Context, user_id string) error { return nil }

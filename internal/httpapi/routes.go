@@ -22,6 +22,7 @@ func (s *Server) registerRoutes() {
 
 	s.mux.HandleFunc("GET /api/chirps", s.handleGetChirps)
 	s.mux.HandleFunc("GET /api/chirps/{chirpID}", s.handleGetChirp)
+	s.mux.HandleFunc("DELETE /api/chirps/{chirpID}", s.handleDeleteChirp)
 
 	s.mux.Handle("/app/",
 		s.Metrics.MiddlewareMetricsInc(
