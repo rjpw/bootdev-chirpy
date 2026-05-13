@@ -13,6 +13,7 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 )
 
+// A stateful client for use in longer workflows.
 type testClient struct {
 	t           *testing.T
 	srv         *httpapi.Server
@@ -62,6 +63,7 @@ func require(t *testing.T, i1, i2 int) {
 	}
 }
 
+// Happy path Chirp assumes we're okay changing state
 func (c *testClient) Chirp(body string) *httptest.ResponseRecorder {
 	w := issueAuthorizedRequest(c.srv, "POST", "/api/chirps",
 		bearer(c.accessToken),
@@ -70,6 +72,7 @@ func (c *testClient) Chirp(body string) *httptest.ResponseRecorder {
 	return w
 }
 
+// "Try" version of Chirp is provisional, used to validate failure modes
 func (c *testClient) TryChirp(body string) *httptest.ResponseRecorder {
 	return issueAuthorizedRequest(c.srv, "POST", "/api/chirps",
 		bearer(c.accessToken),
