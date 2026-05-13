@@ -87,7 +87,6 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	}
 
 	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
-		fmt.Println("Token is valid for subject:", claims.Subject)
 		subjectUUID, err := uuid.Parse(claims.Subject)
 		if err != nil {
 			return uuid.Nil, err
