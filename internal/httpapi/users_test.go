@@ -3,9 +3,7 @@ package httpapi_test
 // This file contains tests for the API server's user-related endpoints.
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -96,15 +94,7 @@ func TestUserFromRawString(t *testing.T) {
 		}
 
 		if tc.path == "/api/users" {
-			// parse user from w.Body
-			var user domain.User
-			data, err := io.ReadAll(w.Body)
-			if err != nil {
-				t.Errorf("Error %s reading reply", err.Error())
-			}
-			if err := json.Unmarshal(data, &user); err != nil {
-				t.Errorf("Error %s decoding reply", err.Error())
-			}
+			user, _ := decodeEntity[domain.User](t, w.Body.String())
 			if user.Email != tc.email {
 				t.Errorf("Want new user returned email %q, got %q", tc.email, user.Email)
 			}
