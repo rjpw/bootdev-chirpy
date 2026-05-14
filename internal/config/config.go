@@ -16,17 +16,17 @@ import (
 
 // ----------------  Server ----------------
 
-var _ application.Runnable = (*Server)(nil)
+var _ application.Runnable = (*Runner)(nil)
 
-type Server struct {
+type Runner struct {
 	httpServer *http.Server
 	close      func() error
 	SecretKey  string
 }
 
-func (s *Server) Handler() http.Handler { return s.httpServer.Handler }
+func (s *Runner) Handler() http.Handler { return s.httpServer.Handler }
 
-func (s *Server) Run(ctx context.Context) error {
+func (s *Runner) Run(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
 		s.httpServer.Shutdown(context.Background())
@@ -38,14 +38,14 @@ func (s *Server) Run(ctx context.Context) error {
 	return err
 }
 
-func (s *Server) Close() error {
+func (s *Runner) Close() error {
 	if s.close != nil {
 		return s.close()
 	}
 	return nil
 }
 
-func NewServer(env application.Environment, staticPath string) (*Server, error) {
+func NewRunner(env application.Environment, staticPath string) (*Runner, error) {
 	repo, db, err := postgres.NewRepositoryFromURL(env.DBURL)
 	if err != nil {
 		return nil, err
@@ -57,9 +57,9 @@ func NewServer(env application.Environment, staticPath string) (*Server, error) 
 		Chirps:       repo,
 	}
 	metrics := &application.ServerMetrics{}
-	handler := httpapi.NewServer(env, metrics, repos, staticPath)
+	handler := httpapi.NewRouter(env, metrics, repos, staticPath)
 
-	return &Server{
+	return &Runner{
 		httpServer: &http.Server{
 			Addr:              "0.0.0.0:8080",
 			Handler:           handler,

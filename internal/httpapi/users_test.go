@@ -20,7 +20,7 @@ type localTestCache struct {
 
 var testCache localTestCache
 
-func initializeUsers(t *testing.T, srv *httpapi.Server) {
+func initializeUsers(t *testing.T, srv *httpapi.ChirpyAPIRouter) {
 	t.Helper()
 
 	// make the empty structures for workflows to be run later

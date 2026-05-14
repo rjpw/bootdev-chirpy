@@ -22,7 +22,7 @@ import (
 //go:embed testdata/*
 var testdataFS embed.FS
 
-func newTestServer() *httpapi.Server {
+func newTestServer() *httpapi.ChirpyAPIRouter {
 	// note: this loads internal/httpapi/testdata/.env
 	env := application.LoadEnvironment()
 
@@ -32,7 +32,7 @@ func newTestServer() *httpapi.Server {
 		UserSessions: repo,
 		Chirps:       repo,
 	}
-	return httpapi.NewServer(
+	return httpapi.NewRouter(
 		env,
 		&application.ServerMetrics{},
 		&repositories,
@@ -54,7 +54,7 @@ func parseHitCount(t *testing.T, body string) int {
 }
 
 func issueAuthorizedRequest(
-	srv *httpapi.Server,
+	srv *httpapi.ChirpyAPIRouter,
 	method, path, authValue string,
 	body io.Reader,
 ) *httptest.ResponseRecorder {
@@ -66,7 +66,7 @@ func issueAuthorizedRequest(
 }
 
 func issueRequest(
-	srv *httpapi.Server,
+	srv *httpapi.ChirpyAPIRouter,
 	method, path string,
 	body io.Reader,
 ) *httptest.ResponseRecorder {
@@ -102,4 +102,60 @@ func getFileReader(t *testing.T, filename string) fs.File {
 		t.Fatalf("testdataFS.Open(%q) error: %v", filename, err)
 	}
 	return file
+}
+
+func TestMethodResponseCodes(t *testing.T) {
+	cases := []struct {
+		method string
+		path   string
+		code   int
+		body   string
+	}{
+		{"GET", "/app/cant-touch-this.txt", 404, ""},
+		{"GET", "/admin/metrics", 200, ""},
+		{"POST", "/admin/metrics", 405, ""},
+		{"DELETE", "/admin/metrics", 405, ""},
+		{"GET", "/api/healthz", 200, ""},
+		{"POST", "/api/healthz", 405, ""},
+		{"GET", "/admin/reset", 405, ""},
+		{"POST", "/admin/reset", 200, ""}, // forbidden in production, but 200 in platform "dev"
+		{"PUT", "/api/chirps", 405, ""},
+	}
+	for _, tc := range cases {
+		srv := newTestServer()
+		r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(string(tc.body)))
+		w := httptest.NewRecorder()
+		srv.ServeHTTP(w, r)
+		if w.Code != tc.code {
+			t.Errorf("%s %s: want %d, got %d", tc.method, tc.path, tc.code, w.Code)
+		}
+	}
+}
+
+func TestContentType(t *testing.T) {
+	cases := []struct {
+		method      string
+		path        string
+		contentType string
+		body        string
+	}{
+		{"GET", "/api/healthz", "text/plain; charset=utf-8", ""},
+		{"GET", "/admin/metrics", "text/html; charset=utf-8", ""},
+		{"POST", "/admin/reset", "text/plain; charset=utf-8", ""},
+		{
+			"POST",
+			"/api/chirps",
+			"application/json; charset=utf-8",
+			"{body: \"hello world\"}",
+		},
+	}
+	for _, tc := range cases {
+		srv := newTestServer()
+		r := httptest.NewRequest(tc.method, tc.path, nil)
+		w := httptest.NewRecorder()
+		srv.ServeHTTP(w, r)
+		if got := w.Header().Get("Content-Type"); got != tc.contentType {
+			t.Errorf("%s %s: want Content-Type %q, got %q", tc.method, tc.path, tc.contentType, got)
+		}
+	}
 }

@@ -36,7 +36,7 @@ type SessionRefreshResponse struct {
 	AccessToken string `json:"token"`
 }
 
-func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	var params PostLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
@@ -44,7 +44,7 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	email := params.Email
 	hashedPassword, err := auth.HashPassword(params.Password)
-	user, err := s.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
+	user, err := router.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
 			respondWithMessage(w, http.StatusConflict, "User already exists")
@@ -64,7 +64,7 @@ func (s *Server) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, createUserResponse)
 }
 
-func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	/* Pseudocode (reverse engineering from the course author's implicit requirement)
 		if we have an access token, then
 		  if token is valid (returns UUID of the user)
@@ -93,7 +93,7 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_id, err := auth.ValidateJWT(accessToken, s.environment.SecretKey)
+	user_id, err := auth.ValidateJWT(accessToken, router.environment.SecretKey)
 	if err != nil {
 		http.Error(
 			w,
@@ -113,7 +113,7 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldUser, err := s.Repositories.Users.GetUserByID(r.Context(), user_id.String())
+	oldUser, err := router.Repositories.Users.GetUserByID(r.Context(), user_id.String())
 	if err != nil {
 		http.Error(
 			w,
@@ -125,7 +125,7 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	email := params.Email
 	hashedPassword, err := auth.HashPassword(params.Password)
-	newUser, err := s.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
+	newUser, err := router.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
 			respondWithMessage(w, http.StatusConflict, "User already exists")
@@ -136,7 +136,7 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// we're trusting they know what they're doing here (sigh)
-	s.Repositories.Users.DeleteUser(r.Context(), oldUser.Email)
+	router.Repositories.Users.DeleteUser(r.Context(), oldUser.Email)
 
 	createUserResponse := PostLoginResponse{
 		ID:        newUser.ID,
@@ -148,14 +148,14 @@ func (s *Server) handleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, createUserResponse)
 }
 
-func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var loginRequestBody PostLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequestBody); err != nil {
 		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
 		return
 	}
 
-	user, err := s.Repositories.Users.AuthenticateUser(
+	user, err := router.Repositories.Users.AuthenticateUser(
 		r.Context(), loginRequestBody.Email, loginRequestBody.Password)
 	if err != nil {
 		fmt.Printf("User authentication error: %v\n", err)
@@ -175,7 +175,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	token, err := auth.MakeJWT(
 		user.ID,
-		s.environment.SecretKey,
+		router.environment.SecretKey,
 		time.Duration(minExpiry)*time.Second,
 	)
 	if err != nil {
@@ -183,7 +183,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Repositories.UserSessions.CreateSession(r.Context(), user.ID)
+	session, err := router.Repositories.UserSessions.CreateSession(r.Context(), user.ID)
 	if err != nil {
 		respondWithMessage(w, http.StatusInternalServerError, "Server error creating User Session")
 		return
@@ -201,7 +201,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, loginReply)
 }
 
-func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetRefreshToken(r.Header)
 	if err != nil {
 		respondWithMessage(
@@ -212,7 +212,7 @@ func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Repositories.UserSessions.GetSession(r.Context(), refreshToken)
+	session, err := router.Repositories.UserSessions.GetSession(r.Context(), refreshToken)
 	if err != nil {
 		respondWithMessage(
 			w,
@@ -242,7 +242,7 @@ func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 
 	accessToken, err := auth.MakeJWT(
 		session.UserID,
-		s.environment.SecretKey,
+		router.environment.SecretKey,
 		time.Duration(3600)*time.Second,
 	)
 	if err != nil {
@@ -258,7 +258,7 @@ func (s *Server) handleSessionRefresh(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, refreshTokenResponse)
 }
 
-func (s *Server) handleSessionRevoke(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleSessionRevoke(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetRefreshToken(r.Header)
 	if err != nil {
 		respondWithMessage(
@@ -269,7 +269,7 @@ func (s *Server) handleSessionRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.Repositories.UserSessions.RevokeSession(r.Context(), refreshToken)
+	err = router.Repositories.UserSessions.RevokeSession(r.Context(), refreshToken)
 	if err != nil {
 		respondWithMessage(
 			w,

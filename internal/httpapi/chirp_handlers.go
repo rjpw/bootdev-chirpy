@@ -24,7 +24,7 @@ func (p ChirpParams) Validate() error {
 	return nil
 }
 
-func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	params := validBody[ChirpParams](r)
 
 	// TODO: see if we can rely on the middleware, and simply remove this as redundant
@@ -36,12 +36,12 @@ func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithMessage(w, http.StatusUnauthorized, err.Error())
 	}
-	userID, err := auth.ValidateJWT(token, s.environment.SecretKey)
+	userID, err := auth.ValidateJWT(token, router.environment.SecretKey)
 	if err != nil {
 		respondWithMessage(w, http.StatusUnauthorized, err.Error())
 	}
 
-	chirp, err := s.Repositories.Chirps.CreateChirp(r.Context(), cleaned, userID)
+	chirp, err := router.Repositories.Chirps.CreateChirp(r.Context(), cleaned, userID)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
 			respondWithMessage(w, http.StatusConflict, "Chirp already exists")
@@ -53,8 +53,8 @@ func (s *Server) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, chirp)
 }
 
-func (s *Server) handleGetChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := s.Repositories.Chirps.GetUserChirps(r.Context(), "%")
+func (router *ChirpyAPIRouter) handleGetChirps(w http.ResponseWriter, r *http.Request) {
+	chirps, err := router.Repositories.Chirps.GetUserChirps(r.Context(), "%")
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		if errors.Is(err, domain.ErrNotFound) {
@@ -67,9 +67,9 @@ func (s *Server) handleGetChirps(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, chirps)
 }
 
-func (s *Server) handleGetChirp(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleGetChirp(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("chirpID")
-	chirp, err := s.Repositories.Chirps.GetChirpByID(r.Context(), id)
+	chirp, err := router.Repositories.Chirps.GetChirpByID(r.Context(), id)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		if errors.Is(err, domain.ErrNotFound) {
@@ -82,7 +82,7 @@ func (s *Server) handleGetChirp(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, chirp)
 }
 
-func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
+func (router *ChirpyAPIRouter) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
 	accessToken, err := auth.GetAccessToken(r.Header)
 	if err != nil {
 		http.Error(
@@ -93,7 +93,7 @@ func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user_id, err := auth.ValidateJWT(accessToken, s.environment.SecretKey)
+	user_id, err := auth.ValidateJWT(accessToken, router.environment.SecretKey)
 	if err != nil {
 		http.Error(
 			w,
@@ -104,7 +104,7 @@ func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chirpID := r.PathValue("chirpID")
-	chirp, err := s.Repositories.Chirps.GetChirpByID(r.Context(), chirpID)
+	chirp, err := router.Repositories.Chirps.GetChirpByID(r.Context(), chirpID)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Chirp with ID %s not found", err.Error()), http.StatusNotFound)
 		return
@@ -124,7 +124,7 @@ func (s *Server) handleDeleteChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.Repositories.Chirps.DeleteChirp(r.Context(), chirpID)
+	err = router.Repositories.Chirps.DeleteChirp(r.Context(), chirpID)
 	if err != nil {
 		http.Error(
 			w,

@@ -7,5 +7,6 @@
   "internal/memory":      "adapter",
   "internal/postgres":    "adapter",
   "internal/operations":  "adapter",
-  "internal/config":      "assembly"
+  "internal/config":      "assembly",
+  "internal/testutil":    "assembly"
 }

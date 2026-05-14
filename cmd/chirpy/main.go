@@ -27,7 +27,7 @@ func main() {
 		}
 		runnable = m
 	} else {
-		srv, err := config.NewServer(env, "./root")
+		srv, err := config.NewRunner(env, "./root")
 		if err != nil {
 			log.Fatalf("Failed to create server: %v", err)
 		}
