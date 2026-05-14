@@ -15,7 +15,7 @@ import (
 	"github.com/rjpw/bootdev-chirpy/internal/testutil"
 )
 
-var srv *config.Runner
+var service *config.Service
 
 func TestMain(m *testing.M) {
 	url, cleanup, err := testdb.SetupURL()
@@ -30,11 +30,11 @@ func TestMain(m *testing.M) {
 		SecretKey: "test-secret-key",
 	}
 
-	srv, err = config.NewRunner(env, "../../root")
+	service, err = config.NewRunner(env, "../../root")
 	if err != nil {
 		panic(err)
 	}
-	defer srv.Close()
+	defer service.Close()
 
 	os.Exit(m.Run())
 }
@@ -45,7 +45,7 @@ func issueRequest(method, path string, body string) *httptest.ResponseRecorder {
 		r = httptest.NewRequest(method, path, strings.NewReader(body))
 	}
 	w := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(w, r)
+	service.Handler().ServeHTTP(w, r)
 	return w
 }
 
@@ -60,7 +60,7 @@ func TestHappyPath(t *testing.T) {
 
 	saulsPassword := "honour among thieves"
 
-	saul := testutil.NewTestClient(t, srv.Handler())
+	saul := testutil.NewAPIClient(t, service.Handler())
 
 	// happy path - create an account
 	saul.CreateUser("saul@bettercall.com", saulsPassword)
@@ -102,8 +102,8 @@ func TestMITMTokenTheft(t *testing.T) {
 		"Bearer tokens are proof-of-possession — server cannot detect theft without DPoP or similar",
 	)
 
-	saul := testutil.NewTestClient(t, srv.Handler())
-	mike := testutil.NewTestClient(t, srv.Handler())
+	saul := testutil.NewAPIClient(t, service.Handler())
+	mike := testutil.NewAPIClient(t, service.Handler())
 
 	saul.CreateUser("saul@bettercall.com", "password")
 	mike.CreateUser("mike@bettercall.com", "password")

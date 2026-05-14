@@ -16,36 +16,36 @@ import (
 
 // ----------------  Server ----------------
 
-var _ application.Runnable = (*Runner)(nil)
+var _ application.Runnable = (*Service)(nil)
 
-type Runner struct {
+type Service struct {
 	httpServer *http.Server
 	close      func() error
 	SecretKey  string
 }
 
-func (s *Runner) Handler() http.Handler { return s.httpServer.Handler }
+func (service *Service) Handler() http.Handler { return service.httpServer.Handler }
 
-func (s *Runner) Run(ctx context.Context) error {
+func (service *Service) Run(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
-		s.httpServer.Shutdown(context.Background())
+		service.httpServer.Shutdown(context.Background())
 	}()
-	err := s.httpServer.ListenAndServe()
+	err := service.httpServer.ListenAndServe()
 	if err == http.ErrServerClosed {
 		return nil
 	}
 	return err
 }
 
-func (s *Runner) Close() error {
-	if s.close != nil {
-		return s.close()
+func (service *Service) Close() error {
+	if service.close != nil {
+		return service.close()
 	}
 	return nil
 }
 
-func NewRunner(env application.Environment, staticPath string) (*Runner, error) {
+func NewRunner(env application.Environment, staticPath string) (*Service, error) {
 	repo, db, err := postgres.NewRepositoryFromURL(env.DBURL)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func NewRunner(env application.Environment, staticPath string) (*Runner, error) 
 	metrics := &application.ServerMetrics{}
 	handler := httpapi.NewRouter(env, metrics, repos, staticPath)
 
-	return &Runner{
+	return &Service{
 		httpServer: &http.Server{
 			Addr:              "0.0.0.0:8080",
 			Handler:           handler,
