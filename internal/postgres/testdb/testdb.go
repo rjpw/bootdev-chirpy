@@ -26,93 +26,98 @@ var (
 	postgresContainer *postgres.PostgresContainer
 )
 
+// SetupURL is for use in TestMain where *testing.T is not available.
+// Returns the connection string, a cleanup function, and any error.
+func SetupURL() (string, func(), error) {
+	once.Do(setupCore)
+	if setupErr != nil {
+		return "", nil, setupErr
+	}
+	cleanup := func() {
+		testDB.Close()
+		postgresContainer.Terminate(context.Background())
+	}
+	return connStr, cleanup, nil
+}
+
+// Setup is for use in individual tests. It calls setupCore via sync.Once
+// and returns the EphemeralDB for direct DB access.
 func Setup(t *testing.T) EphemeralDB {
 	t.Helper()
-	once.Do(func() {
-		ctx := context.Background()
-
-		var err error
-		postgresContainer, err = postgres.Run(ctx,
-			"postgres:17.2-alpine3.21",
-			postgres.WithDatabase("test"),
-			postgres.WithUsername("user"),
-			postgres.WithPassword("password"),
-			postgres.BasicWaitStrategies(),
-		)
-		if err != nil {
-			setupErr = err
-			return
-		}
-
-		// Get the connection string for the database.
-		connStr, err = postgresContainer.ConnectionString(ctx, "sslmode=disable")
-		if err != nil {
-			setupErr = err
-			return
-		}
-
-		// Open a connection to the database.
-		testDB, err = sql.Open("postgres", connStr)
-		if err != nil {
-			setupErr = err
-			return
-		}
-
-		// Ping the database to ensure it's up and running.
-		if err := testDB.PingContext(ctx); err != nil {
-			setupErr = err
-			return
-		}
-
-		// define a subdirectory for the migrations to avoid including non-migration files in the root of the schema package
-		migrationsFS, err := fs.Sub(schema.Migrations, "migrations")
-		if err != nil {
-			setupErr = err
-			return
-		}
-
-		// Create a new goose provider using the embedded migrations.
-		provider, err := goose.NewProvider(
-			goose.DialectPostgres,
-			testDB,
-			migrationsFS,
-		)
-		if err != nil {
-			setupErr = err
-			return
-		}
-
-		// Apply all up migrations.
-		results, err := provider.Up(ctx)
-		if err != nil {
-			setupErr = err
-			return
-		}
-		t.Logf("Migrations applied: %v", results)
-
-		// close the connection before snapshot
-		testDB.Close()
-
-		// Snapshot the container to speed up future test runs.
-		if err := postgresContainer.Snapshot(ctx); err != nil {
-			setupErr = err
-			return
-		}
-
-		// reopen after snapshot
-		testDB, err = sql.Open("postgres", connStr)
-		if err != nil {
-			setupErr = err
-			return
-		}
-	})
-
+	once.Do(setupCore)
 	if setupErr != nil {
 		t.Fatalf("Failed to set up test database: %v", setupErr)
 	}
-
 	return EphemeralDB{
 		DB:        testDB,
 		Container: postgresContainer,
+	}
+}
+
+func setupCore() {
+	ctx := context.Background()
+
+	var err error
+	postgresContainer, err = postgres.Run(ctx,
+		"postgres:17.2-alpine3.21",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("user"),
+		postgres.WithPassword("password"),
+		postgres.BasicWaitStrategies(),
+	)
+	if err != nil {
+		setupErr = err
+		return
+	}
+
+	connStr, err = postgresContainer.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		setupErr = err
+		return
+	}
+
+	testDB, err = sql.Open("postgres", connStr)
+	if err != nil {
+		setupErr = err
+		return
+	}
+
+	if err := testDB.PingContext(ctx); err != nil {
+		setupErr = err
+		return
+	}
+
+	migrationsFS, err := fs.Sub(schema.Migrations, "migrations")
+	if err != nil {
+		setupErr = err
+		return
+	}
+
+	provider, err := goose.NewProvider(
+		goose.DialectPostgres,
+		testDB,
+		migrationsFS,
+	)
+	if err != nil {
+		setupErr = err
+		return
+	}
+
+	if _, err = provider.Up(ctx); err != nil {
+		setupErr = err
+		return
+	}
+
+	testDB.Close()
+
+	if err := postgresContainer.Snapshot(ctx); err != nil {
+		setupErr = err
+		return
+	}
+
+	testDB, err = sql.Open("postgres", connStr)
+	if err != nil {
+		setupErr = err
+		return
 	}
 }
