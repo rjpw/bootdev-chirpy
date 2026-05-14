@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 		SecretKey: "test-secret-key",
 	}
 
-	service, err = config.NewRunner(env, "../../root")
+	service, err = config.NewService(env, "../../root")
 	if err != nil {
 		panic(err)
 	}

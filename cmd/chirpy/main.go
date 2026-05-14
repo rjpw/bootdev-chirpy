@@ -27,11 +27,11 @@ func main() {
 		}
 		runnable = m
 	} else {
-		srv, err := config.NewRunner(env, "./root")
+		svc, err := config.NewService(env, "./root")
 		if err != nil {
 			log.Fatalf("Failed to create server: %v", err)
 		}
-		runnable = srv
+		runnable = svc
 	}
 	defer runnable.Close()
 

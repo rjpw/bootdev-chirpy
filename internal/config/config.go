@@ -45,7 +45,7 @@ func (service *Service) Close() error {
 	return nil
 }
 
-func NewRunner(env application.Environment, staticPath string) (*Service, error) {
+func NewService(env application.Environment, staticPath string) (*Service, error) {
 	repo, db, err := postgres.NewRepositoryFromURL(env.DBURL)
 	if err != nil {
 		return nil, err
