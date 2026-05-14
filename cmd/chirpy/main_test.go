@@ -18,7 +18,7 @@ import (
 var service *config.Service
 
 func TestMain(m *testing.M) {
-	url, cleanup, err := testdb.SetupURL()
+	url, cleanup, err := testdb.SetupTestsuiteDB()
 	if err != nil {
 		panic(err)
 	}

@@ -24,7 +24,7 @@ func TestAllTablesExist(t *testing.T) {
 		},
 	}
 
-	db := testdb.Setup(t)
+	db := testdb.SetupTestHelperDB(t)
 
 	// Can we reach the database?
 	if err := db.DB.Ping(); err != nil {

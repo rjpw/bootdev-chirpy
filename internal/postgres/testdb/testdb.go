@@ -26,9 +26,9 @@ var (
 	postgresContainer *postgres.PostgresContainer
 )
 
-// SetupURL is for use in TestMain where *testing.T is not available.
+// SetupTestsuiteDB is for use in TestMain where *testing.T is not available.
 // Returns the connection string, a cleanup function, and any error.
-func SetupURL() (string, func(), error) {
+func SetupTestsuiteDB() (string, func(), error) {
 	once.Do(setupCore)
 	if setupErr != nil {
 		return "", nil, setupErr
@@ -40,9 +40,9 @@ func SetupURL() (string, func(), error) {
 	return connStr, cleanup, nil
 }
 
-// Setup is for use in individual tests. It calls setupCore via sync.Once
+// SetupTestHelperDB is for use in individual tests. It calls setupCore via sync.Once
 // and returns the EphemeralDB for direct DB access.
-func Setup(t *testing.T) EphemeralDB {
+func SetupTestHelperDB(t *testing.T) EphemeralDB {
 	t.Helper()
 	once.Do(setupCore)
 	if setupErr != nil {

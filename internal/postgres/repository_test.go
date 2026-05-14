@@ -13,7 +13,7 @@ import (
 
 func setupTestRepository(t *testing.T) *postgres.Repository {
 	t.Helper()
-	ephemeralDB := testdb.Setup(t)
+	ephemeralDB := testdb.SetupTestHelperDB(t)
 	t.Cleanup(func() {
 		// Restore the database to its initial state after each test.
 		if err := ephemeralDB.Container.Restore(context.Background()); err != nil {
