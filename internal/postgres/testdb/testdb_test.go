@@ -19,6 +19,9 @@ func TestAllTablesExist(t *testing.T) {
 		{
 			name: "chirps",
 		},
+		{
+			name: "user_sessions",
+		},
 	}
 
 	db := testdb.Setup(t)
