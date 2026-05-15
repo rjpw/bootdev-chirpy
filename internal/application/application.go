@@ -38,6 +38,7 @@ type ChirpRepository interface {
 
 type UserRepository interface {
 	CreateUser(ctx context.Context, email, password string) (*domain.User, error)
+	UpgradeUser(ctx context.Context, id string) (*domain.User, error)
 	AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetUserByID(ctx context.Context, id string) (*domain.User, error)

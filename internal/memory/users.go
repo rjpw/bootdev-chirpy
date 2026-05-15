@@ -44,6 +44,25 @@ func (s *Repository) CreateUser(_ context.Context, email, password string) (*dom
 	return &user, nil
 }
 
+func (s *Repository) UpgradeUser(_ context.Context, id string) (*domain.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, ok := s.users[parsedID]
+	if !ok {
+		return nil, domain.ErrNotFound
+	}
+	user.IsChirpyRedMember = true
+
+	s.users[parsedID] = user
+	return &user, nil
+}
+
 func (s *Repository) GetUserByEmail(_ context.Context, email string) (*domain.User, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

@@ -17,7 +17,7 @@ INSERT INTO users (id, created_at, updated_at, email, password)
 VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING id, created_at, updated_at, email, password
+RETURNING id, created_at, updated_at, email, password, is_chirpy_red_member
 `
 
 type CreateUserParams struct {
@@ -43,6 +43,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Password,
+		&i.IsChirpyRedMember,
 	)
 	return i, err
 }
@@ -67,7 +68,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, created_at, updated_at, email, password
+SELECT id, created_at, updated_at, email, password, is_chirpy_red_member
 FROM users
 WHERE email = $1
 `
@@ -81,12 +82,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Password,
+		&i.IsChirpyRedMember,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, created_at, updated_at, email, password
+SELECT id, created_at, updated_at, email, password, is_chirpy_red_member
 FROM users
 WHERE id = $1
 `
@@ -100,6 +102,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Password,
+		&i.IsChirpyRedMember,
 	)
 	return i, err
 }
@@ -108,7 +111,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET updated_at = $2, email = $3
 WHERE email = $1
-RETURNING id, created_at, updated_at, email, password
+RETURNING id, created_at, updated_at, email, password, is_chirpy_red_member
 `
 
 type UpdateUserParams struct {
@@ -126,6 +129,28 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Password,
+		&i.IsChirpyRedMember,
+	)
+	return i, err
+}
+
+const upgradeUser = `-- name: UpgradeUser :one
+UPDATE users
+SET is_chirpy_red_member = true
+WHERE id = $1
+RETURNING id, created_at, updated_at, email, password, is_chirpy_red_member
+`
+
+func (q *Queries) UpgradeUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, upgradeUser, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.Password,
+		&i.IsChirpyRedMember,
 	)
 	return i, err
 }

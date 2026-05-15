@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/application"
 )
 
@@ -20,6 +22,15 @@ type ChirpyAPIRouter struct {
 
 type jsonError struct {
 	Error string `json:"error"`
+}
+
+type PostEventData struct {
+	UserID uuid.UUID `json:"user_id"`
+}
+
+type PostEventRequest struct {
+	Event string        `json:"event"`
+	Data  PostEventData `json:"data"`
 }
 
 func NewRouter(environment application.Environment,
@@ -40,6 +51,22 @@ func NewRouter(environment application.Environment,
 
 func (router *ChirpyAPIRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.mux.ServeHTTP(w, r)
+}
+
+func MarshalEntity[T any](params T) (string, error) {
+	b, err := json.Marshal(params)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func DecodeEntity[T any](rawData string) (T, error) {
+	var v T
+	if err := json.NewDecoder(strings.NewReader(rawData)).Decode(&v); err != nil {
+		return v, err
+	}
+	return v, nil
 }
 
 func (router *ChirpyAPIRouter) registerRoutes() {
@@ -67,6 +94,7 @@ func (router *ChirpyAPIRouter) registerRoutes() {
 	router.mux.HandleFunc("POST /api/revoke", router.handleSessionRevoke)
 	router.mux.HandleFunc("PUT /api/users", router.handleUpdateUser)
 	router.mux.HandleFunc("POST /api/users", router.handleCreateUser)
+	router.mux.HandleFunc("POST /api/polka/webhooks", router.handlePolkaWebhook)
 
 }
 
@@ -115,6 +143,48 @@ func (router *ChirpyAPIRouter) handleHealthz(w http.ResponseWriter, _ *http.Requ
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "OK")
+}
+
+func (router *ChirpyAPIRouter) handlePolkaWebhook(w http.ResponseWriter, r *http.Request) {
+	/*
+		Format:
+		{
+		  "event": "user.upgraded",
+		  "data": {
+		    "user_id": "3311741c-680c-4546-99f3-fc9efac2036c"
+		  }
+		}
+
+		Pseudocode:
+
+		if event is not "user.upgraded", then:
+			reply with http.StatusNoContent
+		otherwise:
+			attempt to update the user, marking IsChirpyRed true
+			if attempt is successful:
+				reply with http.StatusNoContent
+			otherwise:
+				reply with http.StatusNotFound
+
+	*/
+
+	var event PostEventRequest
+	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if event.Event == "user.upgraded" {
+		_, err := router.Repositories.Users.UpgradeUser(r.Context(), event.Data.UserID.String())
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+		}
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
 }
 
 func (router *ChirpyAPIRouter) handleMetrics(w http.ResponseWriter, _ *http.Request) {

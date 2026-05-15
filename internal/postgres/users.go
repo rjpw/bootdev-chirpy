@@ -17,10 +17,11 @@ var _ application.UserRepository = (*Repository)(nil)
 
 func toRepositoryUser(dbUser database.User) *domain.User {
 	return &domain.User{
-		ID:        dbUser.ID,
-		Email:     dbUser.Email,
-		CreatedAt: dbUser.CreatedAt,
-		UpdatedAt: dbUser.UpdatedAt,
+		ID:                dbUser.ID,
+		Email:             dbUser.Email,
+		CreatedAt:         dbUser.CreatedAt,
+		UpdatedAt:         dbUser.UpdatedAt,
+		IsChirpyRedMember: dbUser.IsChirpyRedMember,
 	}
 }
 
@@ -35,6 +36,19 @@ func (s *Repository) CreateUser(ctx context.Context, email, password string) (*d
 	})
 	if err != nil {
 		return nil, mapError(err)
+	}
+	return toRepositoryUser(user), nil
+}
+
+func (s *Repository) UpgradeUser(ctx context.Context, id string) (*domain.User, error) {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.db.UpgradeUser(ctx, parsedID)
+	if err != nil {
+		return nil, err
 	}
 	return toRepositoryUser(user), nil
 }

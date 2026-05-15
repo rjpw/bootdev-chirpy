@@ -2,7 +2,6 @@ package httpapi_test
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -77,18 +76,19 @@ func issueRequest(
 }
 
 func marshalEntity[T any](t *testing.T, params T) string {
-	b, err := json.Marshal(params)
+	t.Helper()
+	entity, err := httpapi.MarshalEntity(params)
 	if err != nil {
-		t.Errorf("Error creating entity: %v", err)
+		t.Fatalf("Error decoding entity %q", err)
 	}
-	return string(b)
+	return entity
 }
 
 func decodeEntity[T any](t *testing.T, rawData string) (T, error) {
 	t.Helper()
-	var v T
-	if err := json.NewDecoder(strings.NewReader(rawData)).Decode(&v); err != nil {
-		t.Errorf("Error decoding entity %q", err)
+	v, err := httpapi.DecodeEntity[T](rawData)
+	if err != nil {
+		t.Fatalf("Error decoding entity %q", err)
 		return v, err
 	}
 	return v, nil

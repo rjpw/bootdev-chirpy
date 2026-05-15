@@ -24,12 +24,13 @@ type PostLoginRequest struct {
 }
 
 type PostLoginResponse struct {
-	ID          uuid.UUID `json:"id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Email       string    `json:"email"`
-	AccessToken string    `json:"token"`
-	SessionID   string    `json:"refresh_token"`
+	ID                uuid.UUID `json:"id"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	Email             string    `json:"email"`
+	AccessToken       string    `json:"token"`
+	SessionID         string    `json:"refresh_token"`
+	IsChirpyRedMember bool      `json:"is_chirpy_red"`
 }
 
 type SessionRefreshResponse struct {
@@ -55,10 +56,11 @@ func (router *ChirpyAPIRouter) handleCreateUser(w http.ResponseWriter, r *http.R
 	}
 
 	createUserResponse := PostLoginResponse{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		ID:                user.ID,
+		CreatedAt:         user.CreatedAt,
+		UpdatedAt:         user.UpdatedAt,
+		Email:             user.Email,
+		IsChirpyRedMember: user.IsChirpyRedMember,
 	}
 
 	respondWithJSON(w, http.StatusCreated, createUserResponse)
@@ -190,12 +192,13 @@ func (router *ChirpyAPIRouter) handleLogin(w http.ResponseWriter, r *http.Reques
 	}
 
 	loginReply := PostLoginResponse{
-		ID:          user.ID,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
-		Email:       user.Email,
-		AccessToken: token,
-		SessionID:   session.ID,
+		ID:                user.ID,
+		CreatedAt:         user.CreatedAt,
+		UpdatedAt:         user.UpdatedAt,
+		Email:             user.Email,
+		AccessToken:       token,
+		SessionID:         session.ID,
+		IsChirpyRedMember: user.IsChirpyRedMember,
 	}
 
 	respondWithJSON(w, http.StatusOK, loginReply)

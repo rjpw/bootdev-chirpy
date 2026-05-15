@@ -27,3 +27,10 @@ WHERE id = $1;
 
 -- name: DeleteAllUsers :exec
 DELETE FROM users;
+
+-- name: UpgradeUser :one
+UPDATE users
+SET is_chirpy_red_member = true
+WHERE id = $1
+RETURNING *;
+
