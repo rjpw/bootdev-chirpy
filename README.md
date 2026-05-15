@@ -32,6 +32,9 @@ curl -sSfL https://golangci-lint.run/install.sh | \
 go install github.com/pressly/goose/v3/cmd/goose@latest
 go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
+# for automatic server restarts while developing (using `make run`)
+go install github.com/air-verse/air@latest
+
 # install dependencies
 go mod tidy
 ```
@@ -160,13 +163,13 @@ Check migration status:
 
 For development, you can also use the goose CLI directly via `make sql-migrate`.
 
-## Architecture
+## Architecture Guardrails
 
-See `docs/architecture.md` for a primer on the project's interface-driven architecture.
+See [docs/architecture.md](docs/architecture.md) for a primer on the project's interface-driven architecture.
 
 ### Hex boundary enforcement
 
-The project follows hexagonal architecture. Each package under `internal/` has a role — domain, driving adapter (httpapi), driven adapter (memory, postgres), or assembly (config). The dependency rule enforces an outside-in design. Adapters depend on the application layer and the domain, never on each other. The application and domain depend on nothing outside it.
+The project follows hexagonal architecture. Each package under `internal/` has a role — domain, driving adapter (`httpapi`), driven adapter (`memory`, `postgres`), or assembly (`config`). The dependency rule enforces an outside-in design. Adapters depend on the application layer and the domain, never on each other. The application and domain depend on nothing outside it.
 
 These boundaries are enforced by an automated test (`hex_guardrail_test.go`) that runs as part of `make test`. The test uses `go list -json` to inspect the actual import graph of every internal package and checks each import against a set of rules.
 
