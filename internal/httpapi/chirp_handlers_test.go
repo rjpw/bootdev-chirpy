@@ -76,6 +76,10 @@ func TestDeletingChirp(t *testing.T) {
 	w := issueRequest(srv, http.MethodPost, "/api/users",
 		getFileReader(t, "UserParams_with_expiry.json"))
 
+	if w.Code != http.StatusCreated {
+		t.Fatal("Failed to create user")
+	}
+
 	w = issueRequest(srv, http.MethodPost, "/api/login",
 		getFileReader(t, "UserParams_with_expiry.json"))
 

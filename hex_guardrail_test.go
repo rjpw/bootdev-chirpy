@@ -94,7 +94,6 @@ func applyRules(t *testing.T, p Package) {
 }
 
 func TestHexBoundaries(t *testing.T) {
-	// fmt.Printf("%v\n", roles)
 	cmd := exec.Command("go", "list", "-json", "./internal/...")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -118,5 +117,8 @@ func TestHexBoundaries(t *testing.T) {
 		applyRules(t, p)
 	}
 
-	cmd.Wait()
+	err = cmd.Wait()
+	if err != nil {
+		t.Logf("Error while wrapping up: %s\n", err.Error())
+	}
 }

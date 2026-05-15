@@ -70,7 +70,7 @@ func (s *Repository) AuthenticateUser(
 		return nil, mapError(err)
 	}
 	ok, err := auth.CheckPasswordHash(password, user.Password)
-	if !ok {
+	if !ok || err != nil {
 		return nil, domain.ErrUnauthorized
 	}
 	return toRepositoryUser(user), nil

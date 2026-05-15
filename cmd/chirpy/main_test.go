@@ -57,7 +57,6 @@ func TestHealthz(t *testing.T) {
 }
 
 func TestHappyPath(t *testing.T) {
-
 	saulsPassword := "honour among thieves"
 
 	saul := testutil.NewAPIClient(t, service.Handler())
@@ -71,7 +70,12 @@ func TestHappyPath(t *testing.T) {
 		http.StatusConflict)
 
 	// try chirping before login -- should fail
-	testutil.AssertStatus(t, "Premature chirping", saul.TryChirp("Better call Saul!"), http.StatusUnauthorized)
+	testutil.AssertStatus(
+		t,
+		"Premature chirping",
+		saul.TryChirp("Better call Saul!"),
+		http.StatusUnauthorized,
+	)
 
 	// so log in ... incorrectly the first time ...
 	testutil.AssertStatus(

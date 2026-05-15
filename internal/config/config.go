@@ -3,10 +3,11 @@ package config
 import (
 	"context"
 	"io/fs"
+	"log"
 	"net/http"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // normally seen in main, we use the config package provision Postgres connections
 	"github.com/rjpw/bootdev-chirpy/internal/application"
 	"github.com/rjpw/bootdev-chirpy/internal/httpapi"
 	"github.com/rjpw/bootdev-chirpy/internal/operations"
@@ -29,7 +30,10 @@ func (service *Service) Handler() http.Handler { return service.httpServer.Handl
 func (service *Service) Run(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
-		service.httpServer.Shutdown(context.Background())
+		err := service.httpServer.Shutdown(context.Background())
+		if err != nil {
+			log.Printf("Error shutting down: %s", err.Error())
+		}
 	}()
 	err := service.httpServer.ListenAndServe()
 	if err == http.ErrServerClosed {

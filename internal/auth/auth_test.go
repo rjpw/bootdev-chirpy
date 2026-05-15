@@ -58,7 +58,7 @@ func TestJWTCreation(t *testing.T) {
 	env := application.LoadEnvironment()
 	cases := []struct {
 		name            string
-		user_id         string
+		userID          string
 		expiresIn       time.Duration
 		sleepFor        time.Duration
 		usesGoodSecret  bool
@@ -67,7 +67,7 @@ func TestJWTCreation(t *testing.T) {
 	}{
 		{
 			name:            "valid and timely",
-			user_id:         "bf1b298a-7e73-4aa1-b8d2-84baa7ef38ae",
+			userID:          "bf1b298a-7e73-4aa1-b8d2-84baa7ef38ae",
 			expiresIn:       1 * time.Second,
 			sleepFor:        10 * time.Millisecond,
 			usesGoodSecret:  true,
@@ -76,7 +76,7 @@ func TestJWTCreation(t *testing.T) {
 		},
 		{
 			name:            "valid but late",
-			user_id:         "bf1b298a-7e73-4aa1-b8d2-84baa7ef38ae",
+			userID:          "bf1b298a-7e73-4aa1-b8d2-84baa7ef38ae",
 			expiresIn:       100 * time.Millisecond,
 			sleepFor:        200 * time.Millisecond,
 			usesGoodSecret:  true,
@@ -85,7 +85,7 @@ func TestJWTCreation(t *testing.T) {
 		},
 		{
 			name:            "valid but used bad secret",
-			user_id:         "bf1b298a-7e73-4aa1-b8d2-84baa7ef38ae",
+			userID:          "bf1b298a-7e73-4aa1-b8d2-84baa7ef38ae",
 			expiresIn:       1 * time.Second,
 			sleepFor:        200 * time.Millisecond,
 			usesGoodSecret:  false,
@@ -95,7 +95,10 @@ func TestJWTCreation(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			id, err := uuid.Parse(tc.user_id)
+			id, err := uuid.Parse(tc.userID)
+			if err != nil {
+				t.Errorf("Could not parse user_id %s into UUID", tc.userID)
+			}
 
 			// default to the riskier state "imagine-hacker-trying-keys"
 			secret := uuid.New().String()
@@ -124,15 +127,18 @@ func TestJWTCreation(t *testing.T) {
 				}
 
 			} else if actualID != id {
-				t.Errorf("Expecting UUID %v and got %v", tc.user_id, actualID)
+				t.Errorf("Expecting UUID %v and got %v", tc.userID, actualID)
 			} else {
-				fmt.Printf("Good news: %s matches %s", actualID, tc.user_id)
+				fmt.Printf("Good news: %s matches %s", actualID, tc.userID)
 			}
 		})
 	}
 }
 
 func TestBearerTokens(t *testing.T) {
+
+	noBearerTokenError := errors.New("no valid Bearer token found")
+
 	cases := []struct {
 		name          string
 		headers       http.Header
@@ -155,7 +161,7 @@ func TestBearerTokens(t *testing.T) {
 				"Accept-Language": {"en-us"},
 				"Foo":             {"Bar", "two"},
 			},
-			expectedError: errors.New("No valid Bearer token found"),
+			expectedError: noBearerTokenError,
 		},
 		{
 			name: "missing bearer prefix",
@@ -166,7 +172,7 @@ func TestBearerTokens(t *testing.T) {
 					"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjaGlycHktYWNjZXNzIiwic3ViIjoiYmYxYjI5OGEtN2U3My00YWExLWI4ZDItODRiYWE3ZWYzOGFlIiwiZXhwIjoxNzc4MTY4NTY5LCJpYXQiOjE3NzgxNjg1Njh9.M9nKwDrqKHSye8jsUzVD2i7C2p4aebpWRCSmPxO8Yr8",
 				},
 			},
-			expectedError: errors.New("No valid Bearer token found"),
+			expectedError: noBearerTokenError,
 		},
 		{
 			name: "malformed token",
@@ -175,7 +181,7 @@ func TestBearerTokens(t *testing.T) {
 				"Authorization":   {"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"},
 				"Accept-Encoding": {"gzip, deflate"},
 			},
-			expectedError: errors.New("No valid Bearer token found"),
+			expectedError: noBearerTokenError,
 		},
 	}
 

@@ -20,7 +20,7 @@ type Environment struct {
 	DBURL     string
 	Platform  string
 	SecretKey string
-	ApiKey    string
+	APIKey    string
 }
 
 type Repositories struct {
@@ -30,11 +30,11 @@ type Repositories struct {
 }
 
 type ChirpRepository interface {
-	CreateChirp(ctx context.Context, body string, user_id uuid.UUID) (*domain.Chirp, error)
+	CreateChirp(ctx context.Context, body string, userID uuid.UUID) (*domain.Chirp, error)
 	GetChirpByID(ctx context.Context, id string) (*domain.Chirp, error)
-	GetUserChirps(ctx context.Context, user_id string) ([]domain.Chirp, error)
+	GetUserChirps(ctx context.Context, userID string) ([]domain.Chirp, error)
 	DeleteChirp(ctx context.Context, id string) error
-	DeleteAllChirps(ctx context.Context, user_id string) error
+	DeleteAllChirps(ctx context.Context, userID string) error
 }
 
 type UserRepository interface {
@@ -49,10 +49,10 @@ type UserRepository interface {
 }
 
 type UserSessionRepository interface {
-	CreateSession(ctx context.Context, user_id uuid.UUID) (*domain.UserSession, error)
+	CreateSession(ctx context.Context, userID uuid.UUID) (*domain.UserSession, error)
 	GetSession(ctx context.Context, id string) (*domain.UserSession, error)
 	RevokeSession(ctx context.Context, id string) error
-	DeleteSessionsByUserID(ctx context.Context, user_id uuid.UUID) error
+	DeleteSessionsByUserID(ctx context.Context, userID uuid.UUID) error
 }
 
 func LoadEnvironment() Environment {
@@ -64,6 +64,6 @@ func LoadEnvironment() Environment {
 		DBURL:     os.Getenv("DB_URL"),
 		Platform:  os.Getenv("PLATFORM"),
 		SecretKey: os.Getenv("HS256_KEY"),
-		ApiKey:    os.Getenv("POLKA_KEY"),
+		APIKey:    os.Getenv("POLKA_KEY"),
 	}
 }

@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"sort"
 
-	// "github.com/google/uuid"
-
 	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
@@ -21,7 +19,7 @@ type ChirpParams struct {
 func (p ChirpParams) Validate() error {
 	bodyLen := len(p.Body)
 	if bodyLen < 1 || bodyLen > 140 {
-		return errors.New("Chirp body must be between 1 and 140 characters inclusive.")
+		return errors.New("body must be between 1 and 140 characters inclusive")
 	}
 	return nil
 }
@@ -59,18 +57,18 @@ func (router *ChirpyAPIRouter) handleGetChirps(w http.ResponseWriter, r *http.Re
 	paramAuthorID := r.URL.Query().Get("author_id")
 	paramSortOrder := r.URL.Query().Get("sort")
 
-	author_id := "%"
+	authorID := "%"
 	sortOrder := "asc"
 
 	if len(paramAuthorID) > 0 {
-		author_id = paramAuthorID
+		authorID = paramAuthorID
 	}
 
 	if len(paramSortOrder) > 0 && paramSortOrder == "desc" {
 		sortOrder = paramSortOrder
 	}
 
-	chirps, err := router.Repositories.Chirps.GetUserChirps(r.Context(), author_id)
+	chirps, err := router.Repositories.Chirps.GetUserChirps(r.Context(), authorID)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		if errors.Is(err, domain.ErrNotFound) {
@@ -81,7 +79,10 @@ func (router *ChirpyAPIRouter) handleGetChirps(w http.ResponseWriter, r *http.Re
 	}
 
 	if sortOrder == "desc" {
-		sort.Slice(chirps, func(i, j int) bool { return chirps[i].CreatedAt.After(chirps[j].CreatedAt) })
+		sort.Slice(
+			chirps,
+			func(i, j int) bool { return chirps[i].CreatedAt.After(chirps[j].CreatedAt) },
+		)
 	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
@@ -113,7 +114,7 @@ func (router *ChirpyAPIRouter) handleDeleteChirp(w http.ResponseWriter, r *http.
 		return
 	}
 
-	user_id, err := auth.ValidateJWT(accessToken, router.environment.SecretKey)
+	userID, err := auth.ValidateJWT(accessToken, router.environment.SecretKey)
 	if err != nil {
 		http.Error(
 			w,
@@ -130,14 +131,14 @@ func (router *ChirpyAPIRouter) handleDeleteChirp(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if chirp.UserID != user_id {
+	if chirp.UserID != userID {
 		http.Error(
 			w,
 			fmt.Sprintf(
 				"Cannot access Chirp: %s owned by %s with UserID: %s",
 				chirpID,
 				chirp.UserID,
-				user_id,
+				userID,
 			),
 			http.StatusForbidden,
 		)

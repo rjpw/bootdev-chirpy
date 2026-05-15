@@ -32,12 +32,12 @@ func toDomainUserSession(dbUserSession database.UserSession) *domain.UserSession
 
 func (r *Repository) CreateSession(
 	ctx context.Context,
-	user_id uuid.UUID,
+	userID uuid.UUID,
 ) (*domain.UserSession, error) {
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	userSession, err := r.db.CreateSession(ctx, database.CreateSessionParams{
 		ID:        auth.MakeRefreshToken(),
-		UserID:    user_id,
+		UserID:    userID,
 		CreatedAt: now,
 		UpdatedAt: now,
 		ExpiresAt: now.Add(60 * 24 * time.Hour),
@@ -68,8 +68,8 @@ func (r *Repository) RevokeSession(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) DeleteSessionsByUserID(ctx context.Context, user_id uuid.UUID) error {
-	err := r.db.DeleteSessionsByUserID(ctx, user_id)
+func (r *Repository) DeleteSessionsByUserID(ctx context.Context, userID uuid.UUID) error {
+	err := r.db.DeleteSessionsByUserID(ctx, userID)
 	if err != nil {
 		return mapError(err)
 	}

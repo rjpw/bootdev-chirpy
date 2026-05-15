@@ -13,8 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
-const refreshTokenLength = 128
-const apiKeyTokenLength = 32
+const (
+	refreshTokenLength = 128
+	apiKeyTokenLength  = 32
+)
 
 func GetAPIKey(headers http.Header) (string, error) {
 	pattern := fmt.Sprintf("^ApiKey\\s+([a-fA-F0-9]{%d})$", apiKeyTokenLength)
@@ -41,9 +43,9 @@ func getTokenByRegex(headers http.Header, regex string) (string, error) {
 	if len(matches) > 1 {
 		token := matches[1]
 		return token, nil
-	} else {
-		return "", errors.New("No valid Bearer token found")
 	}
+
+	return "", errors.New("no valid Bearer token found")
 }
 
 func HashPassword(password string) (string, error) {
@@ -87,20 +89,21 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&jwt.RegisteredClaims{},
-		func(token *jwt.Token) (any, error) {
+		func(_ *jwt.Token) (any, error) {
 			return []byte(tokenSecret), nil
 		})
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if ok && token.Valid {
 		subjectUUID, err := uuid.Parse(claims.Subject)
 		if err != nil {
 			return uuid.Nil, err
 		}
 		return subjectUUID, nil
-	} else {
-		return uuid.Nil, errors.New("Invalid token")
 	}
+
+	return uuid.Nil, errors.New("invalid token")
 }

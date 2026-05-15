@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"io/fs"
+	"log"
 	"sync"
 	"testing"
 
@@ -35,7 +36,10 @@ func SetupTestsuiteDB() (string, func(), error) {
 	}
 	cleanup := func() {
 		testDB.Close()
-		postgresContainer.Terminate(context.Background())
+		err := postgresContainer.Terminate(context.Background())
+		if err != nil {
+			log.Printf("Error encountered while terminating container: %s", err.Error())
+		}
 	}
 	return connStr, cleanup, nil
 }

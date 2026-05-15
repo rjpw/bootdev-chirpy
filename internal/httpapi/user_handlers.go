@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -45,6 +46,11 @@ func (router *ChirpyAPIRouter) handleCreateUser(w http.ResponseWriter, r *http.R
 	}
 	email := params.Email
 	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		respondWithMessage(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	user, err := router.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
@@ -95,7 +101,7 @@ func (router *ChirpyAPIRouter) handleUpdateUser(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	user_id, err := auth.ValidateJWT(accessToken, router.environment.SecretKey)
+	userID, err := auth.ValidateJWT(accessToken, router.environment.SecretKey)
 	if err != nil {
 		http.Error(
 			w,
@@ -115,7 +121,7 @@ func (router *ChirpyAPIRouter) handleUpdateUser(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	oldUser, err := router.Repositories.Users.GetUserByID(r.Context(), user_id.String())
+	oldUser, err := router.Repositories.Users.GetUserByID(r.Context(), userID.String())
 	if err != nil {
 		http.Error(
 			w,
@@ -127,6 +133,15 @@ func (router *ChirpyAPIRouter) handleUpdateUser(w http.ResponseWriter, r *http.R
 
 	email := params.Email
 	hashedPassword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		http.Error(
+			w,
+			fmt.Sprintf("error hashing password: %s", err.Error()),
+			http.StatusUnauthorized,
+		)
+		return
+	}
+
 	newUser, err := router.Repositories.Users.CreateUser(r.Context(), email, hashedPassword)
 	if err != nil {
 		if errors.Is(err, domain.ErrConflict) {
@@ -138,7 +153,10 @@ func (router *ChirpyAPIRouter) handleUpdateUser(w http.ResponseWriter, r *http.R
 	}
 
 	// we're trusting they know what they're doing here (sigh)
-	router.Repositories.Users.DeleteUser(r.Context(), oldUser.Email)
+	err = router.Repositories.Users.DeleteUser(r.Context(), oldUser.Email)
+	if err != nil {
+		log.Printf("Warning: unexpected error removing old record: %s", err.Error())
+	}
 
 	createUserResponse := PostLoginResponse{
 		ID:        newUser.ID,
@@ -153,7 +171,7 @@ func (router *ChirpyAPIRouter) handleUpdateUser(w http.ResponseWriter, r *http.R
 func (router *ChirpyAPIRouter) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var loginRequestBody PostLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequestBody); err != nil {
-		http.Error(w, "Cannot decode User from request body", http.StatusBadRequest)
+		http.Error(w, "cannot decode User from request body", http.StatusBadRequest)
 		return
 	}
 
@@ -210,7 +228,7 @@ func (router *ChirpyAPIRouter) handleSessionRefresh(w http.ResponseWriter, r *ht
 		respondWithMessage(
 			w,
 			http.StatusBadRequest,
-			fmt.Errorf("Cannot retrieve refresh token: %s", err).Error(),
+			fmt.Errorf("cannot retrieve refresh token: %s", err).Error(),
 		)
 		return
 	}
@@ -220,7 +238,7 @@ func (router *ChirpyAPIRouter) handleSessionRefresh(w http.ResponseWriter, r *ht
 		respondWithMessage(
 			w,
 			http.StatusUnauthorized,
-			fmt.Errorf("Cannot retrieve session: %s", err).Error(),
+			fmt.Errorf("cannot retrieve session: %s", err).Error(),
 		)
 		return
 	}
@@ -252,7 +270,7 @@ func (router *ChirpyAPIRouter) handleSessionRefresh(w http.ResponseWriter, r *ht
 		respondWithMessage(
 			w,
 			http.StatusInternalServerError,
-			fmt.Errorf("Error creating access token: %s", err).Error(),
+			fmt.Errorf("error creating access token: %s", err).Error(),
 		)
 		return
 	}
@@ -267,7 +285,7 @@ func (router *ChirpyAPIRouter) handleSessionRevoke(w http.ResponseWriter, r *htt
 		respondWithMessage(
 			w,
 			http.StatusBadRequest,
-			fmt.Errorf("Cannot retrieve refresh token: %s", err).Error(),
+			fmt.Errorf("cannot retrieve refresh token: %s", err).Error(),
 		)
 		return
 	}
@@ -277,7 +295,7 @@ func (router *ChirpyAPIRouter) handleSessionRevoke(w http.ResponseWriter, r *htt
 		respondWithMessage(
 			w,
 			http.StatusBadRequest,
-			fmt.Errorf("Cannot revoke session: %s", err).Error(),
+			fmt.Errorf("cannot revoke session: %s", err).Error(),
 		)
 		return
 	}

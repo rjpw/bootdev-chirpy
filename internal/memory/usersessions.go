@@ -12,14 +12,14 @@ import (
 
 var _ application.UserSessionRepository = (*Repository)(nil)
 
-func (r *Repository) CreateSession(
-	ctx context.Context,
-	user_id uuid.UUID,
+func (repo *Repository) CreateSession(
+	_ context.Context,
+	userID uuid.UUID,
 ) (*domain.UserSession, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	_, err := r.getUserByID(user_id)
+	_, err := repo.getUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -29,31 +29,31 @@ func (r *Repository) CreateSession(
 
 	session := domain.UserSession{
 		ID:        id,
-		UserID:    user_id,
+		UserID:    userID,
 		CreatedAt: now,
 		UpdatedAt: now,
 		ExpiresAt: now.Add(60 * 24 * time.Hour),
 	}
 
-	r.userSessions[id] = session
+	repo.userSessions[id] = session
 	return &session, nil
 }
 
-func (r *Repository) GetSession(ctx context.Context, id string) (*domain.UserSession, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *Repository) GetSession(_ context.Context, id string) (*domain.UserSession, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	session, ok := r.userSessions[id]
+	session, ok := repo.userSessions[id]
 	if !ok {
 		return nil, domain.ErrNotFound
 	}
 	return &session, nil
 }
 
-func (r *Repository) RevokeSession(ctx context.Context, id string) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	session, err := r.GetSession(ctx, id)
+func (repo *Repository) RevokeSession(ctx context.Context, id string) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+	session, err := repo.GetSession(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -65,13 +65,13 @@ func (r *Repository) RevokeSession(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) DeleteSessionsByUserID(ctx context.Context, user_id uuid.UUID) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *Repository) DeleteSessionsByUserID(_ context.Context, userID uuid.UUID) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	for id, session := range r.userSessions {
-		if session.UserID == user_id {
-			delete(r.userSessions, id)
+	for id, session := range repo.userSessions {
+		if session.UserID == userID {
+			delete(repo.userSessions, id)
 		}
 	}
 

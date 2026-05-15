@@ -15,12 +15,15 @@ var _ application.UserRepository = (*Repository)(
 	nil,
 ) // ensure MemoryStore implements the UserStore interface
 
-func (s *Repository) CreateUser(_ context.Context, email, password string) (*domain.User, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (repo *Repository) CreateUser(
+	_ context.Context,
+	email, password string,
+) (*domain.User, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	// check for existing user with the same email
-	for _, user := range s.users {
+	for _, user := range repo.users {
 		if user.Email == email {
 			return nil, domain.ErrConflict
 		}
@@ -39,35 +42,35 @@ func (s *Repository) CreateUser(_ context.Context, email, password string) (*dom
 		Password: password,
 	}
 
-	s.users[id] = user
-	s.userCredentials[id] = userCreds
+	repo.users[id] = user
+	repo.userCredentials[id] = userCreds
 	return &user, nil
 }
 
-func (s *Repository) UpgradeUser(_ context.Context, id string) (*domain.User, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (repo *Repository) UpgradeUser(_ context.Context, id string) (*domain.User, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}
 
-	user, ok := s.users[parsedID]
+	user, ok := repo.users[parsedID]
 	if !ok {
 		return nil, domain.ErrNotFound
 	}
 	user.IsChirpyRedMember = true
 
-	s.users[parsedID] = user
+	repo.users[parsedID] = user
 	return &user, nil
 }
 
-func (s *Repository) GetUserByEmail(_ context.Context, email string) (*domain.User, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (repo *Repository) GetUserByEmail(_ context.Context, email string) (*domain.User, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 
-	for _, user := range s.users {
+	for _, user := range repo.users {
 		if user.Email == email {
 			return &user, nil
 		}
@@ -76,37 +79,37 @@ func (s *Repository) GetUserByEmail(_ context.Context, email string) (*domain.Us
 	return nil, domain.ErrNotFound
 }
 
-func (s *Repository) AuthenticateUser(
+func (repo *Repository) AuthenticateUser(
 	ctx context.Context,
 	email, password string,
 ) (*domain.User, error) {
-	user, err := s.GetUserByEmail(ctx, email)
+	user, err := repo.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
 
-	creds := s.userCredentials[user.ID]
+	creds := repo.userCredentials[user.ID]
 	ok, err := auth.CheckPasswordHash(password, creds.Password)
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
-		return nil, errors.New("Not authorized")
+		return nil, errors.New("not authorized")
 	}
 
 	return user, nil
 }
 
-func (s *Repository) GetUserByID(_ context.Context, id string) (*domain.User, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (repo *Repository) GetUserByID(_ context.Context, id string) (*domain.User, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}
 
-	user, ok := s.users[parsedID]
+	user, ok := repo.users[parsedID]
 	if !ok {
 		return nil, domain.ErrNotFound
 	}
@@ -114,13 +117,13 @@ func (s *Repository) GetUserByID(_ context.Context, id string) (*domain.User, er
 	return &user, nil
 }
 
-func (s *Repository) DeleteUser(_ context.Context, email string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (repo *Repository) DeleteUser(_ context.Context, email string) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	for id, user := range s.users {
+	for id, user := range repo.users {
 		if user.Email == email {
-			delete(s.users, id)
+			delete(repo.users, id)
 			return nil
 		}
 	}
@@ -128,15 +131,15 @@ func (s *Repository) DeleteUser(_ context.Context, email string) error {
 	return domain.ErrNotFound
 }
 
-func (s *Repository) UpdateUserEmail(_ context.Context, oldEmail, newEmail string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (repo *Repository) UpdateUserEmail(_ context.Context, oldEmail, newEmail string) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	var user *domain.User
-	for id, u := range s.users {
+	for id, u := range repo.users {
 		if u.Email == oldEmail {
 			user = &u
-			delete(s.users, id)
+			delete(repo.users, id)
 			break
 		}
 	}
@@ -147,22 +150,22 @@ func (s *Repository) UpdateUserEmail(_ context.Context, oldEmail, newEmail strin
 
 	user.Email = newEmail
 	user.UpdatedAt = time.Now().UTC().Truncate(time.Microsecond)
-	s.users[user.ID] = *user
+	repo.users[user.ID] = *user
 
 	return nil
 }
 
-func (s *Repository) DeleteAllUsers(_ context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (repo *Repository) DeleteAllUsers(_ context.Context) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	s.users = make(map[uuid.UUID]domain.User)
+	repo.users = make(map[uuid.UUID]domain.User)
 	return nil
 }
 
 // unexported, no locking — caller must hold the lock
-func (r *Repository) getUserByID(id uuid.UUID) (*domain.User, error) {
-	user, ok := r.users[id]
+func (repo *Repository) getUserByID(id uuid.UUID) (*domain.User, error) {
+	user, ok := repo.users[id]
 	if !ok {
 		return nil, domain.ErrNotFound
 	}

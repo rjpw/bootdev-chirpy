@@ -11,15 +11,15 @@ import (
 
 var _ application.ChirpRepository = (*Repository)(nil) // compiler guard for ChirpRepo
 
-func (r *Repository) CreateChirp(
-	ctx context.Context,
+func (repo *Repository) CreateChirp(
+	_ context.Context,
 	body string,
-	user_id uuid.UUID,
+	userID uuid.UUID,
 ) (*domain.Chirp, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	_, err := r.getUserByID(user_id)
+	_, err := repo.getUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -31,19 +31,19 @@ func (r *Repository) CreateChirp(
 		CreatedAt: now,
 		UpdatedAt: now,
 		Body:      body,
-		UserID:    user_id,
+		UserID:    userID,
 	}
 
-	r.chirps[id] = chirp
+	repo.chirps[id] = chirp
 	return &chirp, nil
 }
 
 // currently just a stub
-func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domain.Chirp, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *Repository) GetUserChirps(_ context.Context, userID string) ([]domain.Chirp, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
-	_, err := uuid.Parse(user_id)
+	_, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -52,35 +52,35 @@ func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domai
 	return chirps, nil
 }
 
-func (r *Repository) GetChirpByID(ctx context.Context, id string) (*domain.Chirp, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *Repository) GetChirpByID(_ context.Context, id string) (*domain.Chirp, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	chirpID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}
 
-	chirp, ok := r.chirps[chirpID]
+	chirp, ok := repo.chirps[chirpID]
 	if !ok {
 		return nil, domain.ErrNotFound
 	}
 	return &chirp, nil
 }
 
-func (r *Repository) DeleteChirp(ctx context.Context, id string) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *Repository) DeleteChirp(_ context.Context, id string) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	chirpID, err := uuid.Parse(id)
 	if err != nil {
 		return err
 	}
 
-	delete(r.chirps, chirpID)
+	delete(repo.chirps, chirpID)
 	return nil
 }
 
-func (r *Repository) DeleteAllChirps(ctx context.Context, user_id string) error {
+func (repo *Repository) DeleteAllChirps(_ context.Context, _ string) error {
 	return nil
 }

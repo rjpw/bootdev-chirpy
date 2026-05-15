@@ -110,7 +110,9 @@ func (apiClient *InternalAPIClient) CreateUser(email, password string) *httptest
 	return w
 }
 
-func (apiClient *InternalAPIClient) TryCreateUser(email, password string) *httptest.ResponseRecorder {
+func (apiClient *InternalAPIClient) TryCreateUser(
+	email, password string,
+) *httptest.ResponseRecorder {
 	return IssueRequest(apiClient.Handler, "POST", "/api/users",
 		Marshal(apiClient.t, httpapi.PostLoginRequest{Email: email, Password: password}))
 }

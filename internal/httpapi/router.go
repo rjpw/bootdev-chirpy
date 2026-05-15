@@ -71,7 +71,6 @@ func DecodeEntity[T any](rawData string) (T, error) {
 }
 
 func (router *ChirpyAPIRouter) registerRoutes() {
-
 	router.mux.HandleFunc("GET /admin/metrics", router.handleMetrics)
 	router.mux.HandleFunc("POST /admin/reset", router.handleReset)
 
@@ -96,7 +95,6 @@ func (router *ChirpyAPIRouter) registerRoutes() {
 	router.mux.HandleFunc("PUT /api/users", router.handleUpdateUser)
 	router.mux.HandleFunc("POST /api/users", router.handleCreateUser)
 	router.mux.HandleFunc("POST /api/polka/webhooks", router.handlePolkaWebhook)
-
 }
 
 func respondWithJSON(w http.ResponseWriter, statusCode int, payload any) {
@@ -175,7 +173,7 @@ func (router *ChirpyAPIRouter) handlePolkaWebhook(w http.ResponseWriter, r *http
 		return
 	}
 
-	if apiKey != router.environment.ApiKey {
+	if apiKey != router.environment.APIKey {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -196,7 +194,6 @@ func (router *ChirpyAPIRouter) handlePolkaWebhook(w http.ResponseWriter, r *http
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
-
 }
 
 func (router *ChirpyAPIRouter) handleMetrics(w http.ResponseWriter, _ *http.Request) {
