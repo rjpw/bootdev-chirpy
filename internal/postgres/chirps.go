@@ -64,11 +64,27 @@ func (r *Repository) GetChirpByID(ctx context.Context, id string) (*domain.Chirp
 }
 
 func (r *Repository) GetUserChirps(ctx context.Context, user_id string) ([]domain.Chirp, error) {
-	chirps, err := r.db.GetAllChirps(ctx)
-	if err != nil {
-		return nil, mapError(err)
+
+	if user_id == "%" || len(user_id) == 0 {
+
+		chirps, err := r.db.GetAllChirps(ctx)
+		if err != nil {
+			return nil, mapError(err)
+		}
+		return toDomainChirps(chirps), nil
+
+	} else {
+
+		uid, err := uuid.Parse(user_id)
+		if err != nil {
+			return nil, mapError(err)
+		}
+
+		chirps, err := r.db.GetUserChirps(ctx, uid)
+		return toDomainChirps(chirps), nil
+
 	}
-	return toDomainChirps(chirps), nil
+
 }
 
 func (r *Repository) DeleteChirp(ctx context.Context, id string) error {

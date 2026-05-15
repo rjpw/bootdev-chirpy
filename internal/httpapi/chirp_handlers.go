@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 
 	// "github.com/google/uuid"
+
 	"github.com/rjpw/bootdev-chirpy/internal/auth"
 	"github.com/rjpw/bootdev-chirpy/internal/domain"
 )
@@ -54,7 +56,21 @@ func (router *ChirpyAPIRouter) handleCreateChirp(w http.ResponseWriter, r *http.
 }
 
 func (router *ChirpyAPIRouter) handleGetChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := router.Repositories.Chirps.GetUserChirps(r.Context(), "%")
+	paramAuthorID := r.URL.Query().Get("author_id")
+	paramSortOrder := r.URL.Query().Get("sort")
+
+	author_id := "%"
+	sortOrder := "asc"
+
+	if len(paramAuthorID) > 0 {
+		author_id = paramAuthorID
+	}
+
+	if len(paramSortOrder) > 0 && paramSortOrder == "desc" {
+		sortOrder = paramSortOrder
+	}
+
+	chirps, err := router.Repositories.Chirps.GetUserChirps(r.Context(), author_id)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 		if errors.Is(err, domain.ErrNotFound) {
@@ -62,6 +78,10 @@ func (router *ChirpyAPIRouter) handleGetChirps(w http.ResponseWriter, r *http.Re
 		} else {
 			respondWithMessage(w, http.StatusBadRequest, err.Error())
 		}
+	}
+
+	if sortOrder == "desc" {
+		sort.Slice(chirps, func(i, j int) bool { return chirps[i].CreatedAt.After(chirps[j].CreatedAt) })
 	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
