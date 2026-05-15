@@ -10,6 +10,8 @@ Being my first server written in Golang, I thought I'd better dig a little deepe
 
 **Hex Architecture Guardrails** - I wrote a test supported by a JSON data model to remind me to stay within pre-defined guardrails for a [Hexagonal Architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)).
 
+**Two Persistence Implementations** - I wanted to model what happens when a project outgrows its database choice for some portion of their data persistence story, like that ever happens! This unnecessary design `thunk` made me slow down and apply a little more effort when considering where to put things, and whether they belonged in the application at all. Doing the work in this course wasn't always fun, but it gives me somewhere to pivot in future projects, where I might choose a key-value store for some data (e.g. for a refresh token cache).
+
 None of these things was called for on Boot.dev, but I knew from long experience that I would appreciate them. Maybe not in the moment, but definitely over time. For a little background on what inspired these things, I wrote [a blog post](https://www.rjpw.ca/posts/go-go-go/) about encountering ghosts of DB operations past, and then doing something about it. 
 
 The TL;DR is that I didn't want my code to keep anybody up at night, and so I used [Vernon's Implementing DDD](https://www.pearson.com/en-ca/subject-catalog/p/implementing-domain-driven-design/P200000009616/9780133039887) (I know: a book!) and my occasionally frustrating AI advisor Kiro (who in turn consults with one of many Claudes) to steer me toward a Domain-Driven Design. My guidance to Kiro is [here](docs/ai-guidance-notes.md).
@@ -18,7 +20,7 @@ The TL;DR is that I didn't want my code to keep anybody up at night, and so I us
 
 ### Prerequisites
 
-- Go 1.26+ (`go version`)
+- Go 1.25+ (`go version`)
 - Docker running (`docker info`)
 - [golangci-lint](https://golangci-lint.run/) (optional but recommended)
 - [Air](https://github.com/air-verse/air) for hot reload (optional)
