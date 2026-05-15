@@ -1,10 +1,18 @@
 # Student Boot.dev Repo: Learn HTTP Servers in Go
 
-This repository contains my implementation of the example server defined in the [Boot.dev](https://www.boot.dev) course [Learn HTTP Servers in Go](https://www.boot.dev/courses/learn-http-servers-golang).
+This repository contains my implementation of the example server defined in the [Boot.dev](https://www.boot.dev) course [Learn HTTP Servers in Go](https://www.boot.dev/courses/learn-http-servers-golang). 
 
-## Progress
+Being my first server written in Golang, I thought I'd better dig a little deeper than the course called for. Here are some of the things this project has that the course didn't explicitly require, but I built anyway:
 
-This is early days. I won't be pushing commits for every lesson, just when I have important milestones.
+**Ephemeral E2E Testing** - On a host with Docker, integration tests will spin up Postgres in a `testcontainer`, run all the migrations with `goose up`, and then run a small suite of tests.
+
+**Stateful Test Client** - Sometimes API calls need to happen in a sequence, like `Sign up` -> `Log in` -> `Post a message (authenticated)`. My internal test suites were getting _really_ long, so the test client offers functions structured like a DSL for this course's API, greatly reducing the length of complex test cases.
+
+**Hex Architecture Guardrails** - I wrote a test supported by a JSON data model to remind me to stay within pre-defined guardrails for a [Hexagonal Architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)).
+
+None of these things was called for on Boot.dev, but I knew from long experience that I would appreciate them. Maybe not in the moment, but definitely over time. For a little background on what inspired these things, I wrote [a blog post](https://www.rjpw.ca/posts/go-go-go/) about encountering ghosts of DB operations past, and then doing something about it. 
+
+The TL;DR is that I didn't want my code to keep anybody up at night, and so I used [Vernon's Implementing DDD](https://www.pearson.com/en-ca/subject-catalog/p/implementing-domain-driven-design/P200000009616/9780133039887) (I know: a book!) and my occasionally frustrating AI advisor Kiro (who in turn consults with one of many Claudes) to steer me toward a Domain-Driven Design. My guidance to Kiro is [here](docs/ai-guidance-notes.md).
 
 ## Quickstart for Developers
 
@@ -38,10 +46,12 @@ cp .env.example .env
 
 Required variables:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DB_URL` | Postgres connection string | `postgres://postgres:postgres@localhost:5432/chirpy?sslmode=disable` |
-| `PLATFORM` | `dev` or `production` | `dev` |
+| Variable | Description |
+|----------|-------------|
+| `DB_URL` | Postgres connection string |
+| `PLATFORM` | `dev` or `production` |
+| `HS256_KEY` |  Symmetrical JWT creation/validation key |
+| `POLKA_KEY` | Sample API Key for webhook lesson |
 
 ### Database
 
@@ -150,17 +160,13 @@ Check migration status:
 
 For development, you can also use the goose CLI directly via `make sql-migrate`.
 
-## Releases
-
-See [design/roadmap/devops/03-release-process.md](design/roadmap/devops/03-release-process.md) for the full release workflow including tagging, migration discipline, and upgrade instructions.
-
 ## Architecture
 
-See `design/` for roadmap docs, design decisions, and FAQs about the project's interface-driven architecture.
+See `docs/architecture.md` for a primer on the project's interface-driven architecture.
 
 ### Hex boundary enforcement
 
-The project follows hexagonal architecture. Each package under `internal/` has a role — core (domain), driving adapter (httpapi), driven adapter (memory, postgres), composition root (config), or infrastructure (metrics). The dependency rule is: adapters depend on the core, never on each other. The core depends on nothing internal.
+The project follows hexagonal architecture. Each package under `internal/` has a role — domain, driving adapter (httpapi), driven adapter (memory, postgres), or assembly (config). The dependency rule enforces an outside-in design. Adapters depend on the application layer and the domain, never on each other. The application and domain depend on nothing outside it.
 
 These boundaries are enforced by an automated test (`hex_guardrail_test.go`) that runs as part of `make test`. The test uses `go list -json` to inspect the actual import graph of every internal package and checks each import against a set of rules.
 
@@ -169,10 +175,10 @@ The classifications and rules are data-driven, defined in two files:
 - `testdata/hex_roles.json` — maps each package to its hex role
 - `testdata/hex_rules.json` — defines which roles may import which other roles
 
-When you add a new package under `internal/`, add an entry to `hex_roles.json` with its role. The rules apply automatically. If a package imports something its role doesn't allow, the test fails with a message like:
+When you add a new package under `internal/`, add an entry to `hex_roles.json` with its role. The rules apply automatically, though if a new module is introduced in `internal`, it must be classified in the JSON files. With these rules defined, if a package imports something its role doesn't allow, the test fails with a message like:
 
-```
-hex violation: internal/domain (core) imports internal/metrics (infra)
+```bash
+hex violation: internal/domain (domain) imports internal/metrics (application)
 ```
 
 To run the boundary check in isolation:
