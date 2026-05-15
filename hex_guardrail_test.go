@@ -53,14 +53,6 @@ func getParentPackageRole(p Package) string {
 }
 
 func applyRules(t *testing.T, p Package) {
-	/*
-		The rules:
-			- core → no internal imports allowed
-			- driving → only core and root
-			- driven → only core and own sub-packages
-			- infra → no core, driving, or driven
-			- root → unrestricted
-	*/
 	t.Helper()
 	packageName := resolveRoleKey(p.ImportPath)
 	parentPackageRole := getParentPackageRole(p)
