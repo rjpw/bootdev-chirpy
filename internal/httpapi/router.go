@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rjpw/bootdev-chirpy/internal/application"
+	"github.com/rjpw/bootdev-chirpy/internal/auth"
 )
 
 type ChirpyAPIRouter struct {
@@ -167,6 +168,17 @@ func (router *ChirpyAPIRouter) handlePolkaWebhook(w http.ResponseWriter, r *http
 				reply with http.StatusNotFound
 
 	*/
+
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if apiKey != router.environment.ApiKey {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	var event PostEventRequest
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {

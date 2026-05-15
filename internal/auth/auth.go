@@ -14,6 +14,12 @@ import (
 )
 
 const refreshTokenLength = 128
+const apiKeyTokenLength = 32
+
+func GetAPIKey(headers http.Header) (string, error) {
+	pattern := fmt.Sprintf("^ApiKey\\s+([a-fA-F0-9]{%d})$", apiKeyTokenLength)
+	return getTokenByRegex(headers, pattern)
+}
 
 func GetAccessToken(headers http.Header) (string, error) {
 	return getTokenByRegex(

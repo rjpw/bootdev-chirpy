@@ -20,6 +20,7 @@ type Environment struct {
 	DBURL     string
 	Platform  string
 	SecretKey string
+	ApiKey    string
 }
 
 type Repositories struct {
@@ -63,5 +64,6 @@ func LoadEnvironment() Environment {
 		DBURL:     os.Getenv("DB_URL"),
 		Platform:  os.Getenv("PLATFORM"),
 		SecretKey: os.Getenv("HS256_KEY"),
+		ApiKey:    os.Getenv("POLKA_KEY"),
 	}
 }
